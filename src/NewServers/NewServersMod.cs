@@ -1,7 +1,7 @@
 using System;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(NewServers.NewServersMod), "New Servers", "0.4.0", "checkersx")]
+[assembly: MelonInfo(typeof(NewServers.NewServersMod), "New Servers", "0.4.1", "checkersx")]
 [assembly: MelonGame("Waseku", "Data Center")]
 
 namespace NewServers

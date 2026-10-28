@@ -2,6 +2,6 @@
   <PropertyGroup>
     <AssemblyName>NewServers</AssemblyName>
     <RootNamespace>NewServers</RootNamespace>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
   </PropertyGroup>
 </Project>

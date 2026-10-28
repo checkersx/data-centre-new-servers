@@ -90,9 +90,18 @@ namespace NewServers
             Prefab.name = $"{twin.name}.4SFP";
             var nsw = Prefab.GetComponent<NetworkSwitch>();
 
+            // On the stored templates cableLinkSwitchPorts can be empty (the game fills it on placement),
+            // so start from the switch's own port objects when it is.
             var ports = new List<CableLink>();
             var existing = nsw.cableLinkSwitchPorts;
-            for (int i = 0; i < existing.Length; i++) ports.Add(existing[i]);
+            if (existing != null && existing.Length > 0)
+                for (int i = 0; i < existing.Length; i++) ports.Add(existing[i]);
+            else
+            {
+                var children = Prefab.GetComponentsInChildren<CableLink>(true);
+                for (int i = 0; i < children.Length; i++) ports.Add(children[i]);
+            }
+            NewServersMod.Log.Msg($"Starter switch template: cableLinkSwitchPorts={(existing == null ? "null" : existing.Length.ToString())}, port objects={ports.Count}.");
             for (int i = 0; i < ExtraPorts.Length; i++)
             {
                 var go = Object.Instantiate(donor.gameObject, Prefab.transform);
@@ -133,21 +142,24 @@ namespace NewServers
             return true;
         }
 
-        // The vanilla switch with only SFP ports (Switch4xSFP).
+        // The vanilla switch with only SFP ports (Switch4xSFP). Port objects are checked directly because
+        // cableLinkSwitchPorts is empty on the stored templates.
         static ShopItemSO FindSfpOnlySwitchSO(Il2CppReferenceArray<GameObject> prefabs, List<ShopItemSO> shopSOs)
         {
             for (int i = 0; i < prefabs.Length; i++)
             {
-                var s = prefabs[i] == null ? null : prefabs[i].GetComponent<NetworkSwitch>();
-                var ports = s?.cableLinkSwitchPorts;
-                if (ports == null || ports.Length == 0) continue;
+                if (prefabs[i] == null) continue;
+                var ports = prefabs[i].GetComponentsInChildren<CableLink>(true);
+                if (ports.Length == 0) continue;
                 bool allSfp = true;
                 for (int k = 0; k < ports.Length; k++)
-                    if (ports[k] == null || !ports[k].isSFPPort || ports[k].sfpTypeSupported != 0) { allSfp = false; break; }
+                    if (!ports[k].isSFPPort || ports[k].sfpTypeSupported != 0) { allSfp = false; break; }
                 if (!allSfp) continue;
-                return s.shopItemSO ?? shopSOs.FirstOrDefault(so => so.itemID == i);
+                var s = prefabs[i].GetComponent<NetworkSwitch>();
+                return s?.shopItemSO ?? shopSOs.FirstOrDefault(so => so.itemID == i);
             }
-            return null;
+            // Last resort: the vanilla asset name.
+            return shopSOs.FirstOrDefault(so => so.name.Contains("4SFP"));
         }
 
         // "16 x 10Gbps RJ45\n<size=-3>EOL ...</size>" -> "16 x 10Gbps RJ45 + 4 x SFP\n<size=-3>EOL ...</size>"
