@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+
+# Private planning notes; this repo is public
+NOTES.md

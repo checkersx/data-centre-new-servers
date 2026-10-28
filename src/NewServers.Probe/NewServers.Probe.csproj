@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Read-only diagnostic mod. Not part of the release; delete from Mods\ when done. -->
+  <PropertyGroup>
+    <AssemblyName>NewServers.Probe</AssemblyName>
+    <RootNamespace>NewServers.Probe</RootNamespace>
+    <Version>0.1.0</Version>
+  </PropertyGroup>
+</Project>
