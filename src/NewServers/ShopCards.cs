@@ -9,11 +9,16 @@ using Object = UnityEngine.Object;
 
 namespace NewServers
 {
-    // Clones each vanilla server's shop card into the same family row, one per Gen.
-    // Unlock state saves natively: the game keeps a guid -> unlocked map and ignores unknown guids.
+    // Clones each vanilla server's shop card, one per Gen, into that family's row; when the row is
+    // full a new row is added directly below it. Unlock state saves natively: the game keeps a
+    // guid -> unlocked map and ignores unknown guids.
     internal static class ShopCards
     {
         const string GuidPrefix = "newservers-";
+
+        // Vanilla shop rows ("HL Blue", "HL Cables", ...) show at most four cards; MoreModules also
+        // adds its own rows of four.
+        const int RowCapacity = 4;
 
         static readonly Dictionary<string, ShopItem> CardsByKey = new();
         static readonly Dictionary<int, ShopItem> VanillaCardsByIndex = new();
@@ -39,7 +44,9 @@ namespace NewServers
             }
 
             var added = new List<ShopItem>();
-            // Gen-major order: each family row reads vanilla 3U, 7U, Gen 2 3U, Gen 2 7U, Gen 3 ...
+            var rowFor = new Dictionary<int, Transform>(); // vanilla row instance id -> row currently being filled
+
+            // Gen-major order, so each family reads: vanilla 3U, 7U, Gen 2 3U, Gen 2 7U | Gen 3 3U, Gen 3 7U, Gen 4 3U, Gen 4 7U
             foreach (var v in Registry.Variants.OrderBy(x => x.Gen).ThenBy(x => x.TwinIndex))
             {
                 if (!VanillaCardsByIndex.TryGetValue(v.TwinIndex, out var vanilla))
@@ -47,6 +54,11 @@ namespace NewServers
                     NewServersMod.Log.Warning($"No vanilla shop card for {v.Label}; it will not be sold.");
                     continue;
                 }
+
+                var familyRow = vanilla.transform.parent;
+                if (!rowFor.TryGetValue(familyRow.GetInstanceID(), out var row)) row = familyRow;
+                if (CardCount(row) >= RowCapacity) row = AddRowBelow(row);
+                rowFor[familyRow.GetInstanceID()] = row;
 
                 // Clone under the inactive holder so Awake sees our SO and guid, then move into the row.
                 var go = Object.Instantiate(vanilla.gameObject, Registry.Holder);
@@ -56,7 +68,7 @@ namespace NewServers
                 card.guid = GuidPrefix + v.Key;
                 card.isUnlocked = false;
                 card.itemDisplayName = v.Label;
-                go.transform.SetParent(vanilla.transform.parent, false);
+                go.transform.SetParent(row, false);
                 go.transform.SetAsLastSibling();
 
                 CardsByKey[v.Key] = card;
@@ -68,6 +80,29 @@ namespace NewServers
             for (int i = 0; i < added.Count; i++) extended[items.Length + i] = added[i];
             shop.shopItems = extended;
             NewServersMod.Log.Msg($"Added {added.Count} shop cards.");
+        }
+
+        static int CardCount(Transform row)
+        {
+            int n = 0;
+            for (int i = 0; i < row.childCount; i++)
+                if (row.GetChild(i).GetComponent<ShopItem>() != null) n++;
+            return n;
+        }
+
+        // An empty copy of the row (same layout and size), inserted straight after it.
+        static Transform AddRowBelow(Transform row)
+        {
+            var clone = Object.Instantiate(row.gameObject, Registry.Holder);
+            clone.name = row.name + " NewServers";
+            for (int i = clone.transform.childCount - 1; i >= 0; i--)
+            {
+                var child = clone.transform.GetChild(i);
+                if (child.GetComponent<ShopItem>() != null) Object.DestroyImmediate(child.gameObject);
+            }
+            clone.transform.SetParent(row.parent, false);
+            clone.transform.SetSiblingIndex(row.GetSiblingIndex() + 1);
+            return clone.transform;
         }
 
         static bool IsServer(PlayerManager.ObjectInHand t) =>
@@ -92,25 +127,34 @@ namespace NewServers
                 if (!_textsLogged && vanilla != null)
                 {
                     _textsLogged = true;
-                    NewServersMod.Log.Msg($"Vanilla card text: name='{vanillaText}' price='{vanilla.txtPrice?.text}' xp='{vanilla.txtXpToUnlock?.text}'");
+                    NewServersMod.Log.Msg($"Vanilla card text: name='{vanillaText.Replace("\n", "\\n")}' price='{vanilla.txtPrice?.text}' xp='{vanilla.txtXpToUnlock?.text}'");
                 }
                 var name = MakeName(vanillaText, v);
                 __instance.txtName.text = name;
-                __instance.itemDisplayName = name;
+                __instance.itemDisplayName = name.Split('\n')[0]; // the cart shows the first line only, like vanilla
             }
             catch (Exception e) { NewServersMod.Log.Error($"RefreshTextPostfix: {e.Message}"); }
         }
 
-        // Swap any vanilla IOPS figure in the card name for ours, then add the Gen.
+        // Vanilla: "System X 3U 5000 IOPS\n<size=-3>EOL: 4:00:00</size>"
+        // Ours:    "System X 3U Gen 2 9000 IOPS\n<size=-3>EOL: 4:00:00</size>"
         static string MakeName(string vanillaText, Variant v)
         {
             if (string.IsNullOrWhiteSpace(vanillaText)) return v.Label;
-            int vanillaIops = VanillaIops(v);
-            var text = vanillaText;
+            var lines = vanillaText.Split('\n');
+            var first = lines[0];
+
             bool replaced = false;
-            foreach (var (from, to) in IopsForms(vanillaIops, v.Iops))
-                if (text.Contains(from)) { text = text.Replace(from, to); replaced = true; break; }
-            return replaced ? $"{text} Gen {v.Gen}" : $"{text} Gen {v.Gen} ({v.Iops:N0} IOPS)";
+            foreach (var (from, to) in IopsForms(VanillaIops(v), v.Iops))
+                if (first.Contains(from)) { first = first.Replace(from, to); replaced = true; break; }
+            if (!replaced) first += $" {v.Iops} IOPS";
+
+            var size = $"{v.SizeInU}U";
+            int at = first.IndexOf(size, StringComparison.Ordinal);
+            first = at >= 0 ? first.Insert(at + size.Length, $" Gen {v.Gen}") : $"{first} Gen {v.Gen}";
+
+            lines[0] = first;
+            return string.Join("\n", lines);
         }
 
         static int VanillaIops(Variant v)
@@ -124,10 +168,10 @@ namespace NewServers
         {
             if (from <= 0) yield break;
             var inv = CultureInfo.InvariantCulture;
-            yield return (from.ToString("N0", inv), to.ToString("N0", inv));                          // 5,000
+            yield return (from.ToString("N0", inv), to.ToString("N0", inv));                                     // 5,000
             yield return (from.ToString("N0", inv).Replace(',', ' '), to.ToString("N0", inv).Replace(',', ' ')); // 5 000
             yield return (from.ToString("N0", inv).Replace(',', '.'), to.ToString("N0", inv).Replace(',', '.')); // 5.000
-            yield return (from.ToString(inv), to.ToString(inv));                                    // 5000
+            yield return (from.ToString(inv), to.ToString(inv));                                                // 5000
             if (from % 1000 == 0) yield return ($"{from / 1000}K", $"{to / 1000}K");
             if (from % 1000 == 0) yield return ($"{from / 1000}k", $"{to / 1000}k");
         }
@@ -147,7 +191,8 @@ namespace NewServers
                 if (prev == null)
                 {
                     VanillaCardsByIndex.TryGetValue(v.TwinIndex, out below);
-                    belowName = below?.txtName?.text ?? "the standard server";
+                    belowName = below?.itemDisplayName;
+                    if (string.IsNullOrEmpty(belowName)) belowName = "the standard server";
                 }
                 else
                 {
@@ -156,6 +201,7 @@ namespace NewServers
                 }
 
                 if (below == null || below.isUnlocked) return true;
+                NewServersMod.Log.Msg($"Blocked unlocking {v.Label}: {belowName} is still locked.");
                 StaticUIElements.instance?.AddMeesageInField($"Unlock {belowName} first.");
                 return false;
             }

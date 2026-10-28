@@ -19,6 +19,8 @@ namespace NewServers.Probe
             Safe("shop item SOs", ShopItemSOs);
             Safe("shop cards", ShopCards);
             Safe("racks", Racks);
+            Safe("network devices", NetworkDevices);
+            Safe("sfp modules", SfpModules);
             Live(reason);
             Log("===== dump done =====", console: true);
         }
@@ -194,6 +196,68 @@ namespace NewServers.Probe
             }
         }
 
+        // Port layouts of switches/routers/firewalls and one server: what an SFP or QSFP port looks like
+        // (CableLink settings and the cage mesh), for giving Gen 3/4 servers fibre ports.
+        static void NetworkDevices()
+        {
+            var mgm = MainGameManager.instance;
+            DevicePorts("switch", mgm.switchesPrefabs);
+            DevicePorts("router", mgm.routersPrefabs);
+            DevicePorts("firewall", mgm.firewallsPrefabs);
+            var server = mgm.serverPrefabs;
+            if (server != null && server.Length > 0)
+                DevicePorts("server", new Il2CppReferenceArray<GameObject>(new[] { server[0] }));
+        }
+
+        static void DevicePorts(string kind, Il2CppReferenceArray<GameObject> prefabs)
+        {
+            if (prefabs == null) { Log($"{kind} prefabs=null"); return; }
+            for (int i = 0; i < prefabs.Length; i++)
+            {
+                var go = prefabs[i];
+                if (go == null) continue;
+                var usable = go.GetComponent<UsableObject>();
+                var links = go.GetComponentsInChildren<CableLink>(true);
+                var groups = new SortedDictionary<string, int>();
+                var examples = new Dictionary<string, CableLink>();
+                for (int k = 0; k < links.Length; k++)
+                {
+                    var l = links[k];
+                    var key = $"sfpPort={l.isSFPPort} supported={l.sfpTypeSupported} inserted={l.sfpTypeInserted} fibre={l.isFibrePort} speed={l.connectionSpeed} type={l.typeOfLink}";
+                    groups[key] = groups.TryGetValue(key, out var n) ? n + 1 : 1;
+                    if (!examples.ContainsKey(key)) examples[key] = l;
+                }
+                Log($"{kind}[{i}] '{go.name}' size={(usable == null ? -1 : usable.sizeInU)}U ports={links.Length}");
+                foreach (var kv in groups)
+                {
+                    var l = examples[kv.Key];
+                    var r = l.GetComponent<Renderer>() ?? l.GetComponentInChildren<Renderer>(true);
+                    var mf = r == null ? null : r.GetComponent<MeshFilter>();
+                    var mats = new List<string>();
+                    if (r != null)
+                        for (int m = 0; m < r.sharedMaterials.Length; m++)
+                            mats.Add(r.sharedMaterials[m] == null ? "null" : r.sharedMaterials[m].name);
+                    var mesh = mf == null || mf.sharedMesh == null ? "-" : $"{mf.sharedMesh.name} size={V(mf.sharedMesh.bounds.size)}";
+                    Log($"   {kv.Value} x {kv.Key}");
+                    Log($"      e.g. {PathOf(l.transform, go.transform)} lpos={V(l.transform.localPosition)} lscale={V(l.transform.localScale)} " +
+                        $"renderer={(r == null ? "-" : PathOf(r.transform, go.transform))} mesh={mesh} mats=[{string.Join(", ", mats)}]");
+                }
+            }
+        }
+
+        static void SfpModules()
+        {
+            var prefabs = MainGameManager.instance.sfpPrefabs;
+            if (prefabs == null) { Log("sfpPrefabs=null"); return; }
+            for (int i = 0; i < prefabs.Length; i++)
+            {
+                var go = prefabs[i];
+                if (go == null) continue;
+                var m = go.GetComponent<SFPModule>();
+                Log(m == null ? $"sfp[{i}] '{go.name}' (no SFPModule)" : $"sfp[{i}] '{go.name}' speed={m.speed} sfpType={m.sfpType} prefabID={m.prefabID} {SO(m.shopItemSO)}");
+            }
+        }
+
         static void Player()
         {
             var p = PlayerManager.instance?.playerClass;
@@ -245,6 +309,10 @@ namespace NewServers.Probe
             foreach (var kv in groups)
                 Log($"  {kv.Value} x {kv.Key}");
 
+            // New Servers variants (prefabID beyond the vanilla 8): do they reach their max?
+            foreach (var s in live.Where(x => x.prefabID >= 8).Take(40))
+                Log($"  upgraded: {s.ServerID} prefabID={s.prefabID} current={s.currentProcessingSpeed} max={s.maxProcessingSpeed} on={s.isOn} customer={s.GetCustomerID()}");
+
             // Busiest servers and their link speeds: does link speed cap throughput?
             foreach (var s in live.OrderByDescending(x => x.currentProcessingSpeed).Take(8))
             {
@@ -284,6 +352,30 @@ namespace NewServers.Probe
                     Log($"   sample serverID={s.serverID} prefabID={s.prefabID} type={s.serverType} rackUID={s.rackPositionUID} customer={s.customerID} " +
                         $"eol={s.eolTime} on={s.isOn} broken={s.isBroken} label='{s.label}' pos={V(s.position)}");
                 }
+            }
+
+            var cables = sd.networkData?.cables;
+            if (cables != null)
+            {
+                var bySpeed = new SortedDictionary<string, int>();
+                for (int i = 0; i < cables.Count; i++)
+                {
+                    var c = cables[i];
+                    var key = $"maxSpeed={c.maxSpeed} {c.startPoint?.type}->{c.endPoint?.type}";
+                    bySpeed[key] = bySpeed.TryGetValue(key, out var n) ? n + 1 : 1;
+                }
+                Log($"   cables={cables.Count}: {string.Join("; ", bySpeed.Select(kv => $"{kv.Value} x {kv.Key}"))}");
+            }
+            var sfps = sd.networkData?.sfpModules;
+            if (sfps != null)
+            {
+                var byPrefab = new SortedDictionary<string, int>();
+                for (int i = 0; i < sfps.Count; i++)
+                {
+                    var key = $"prefabID={sfps[i].prefabID} inserted={sfps[i].isInserted}";
+                    byPrefab[key] = byPrefab.TryGetValue(key, out var n) ? n + 1 : 1;
+                }
+                Log($"   sfpModules={sfps.Count}: {string.Join("; ", byPrefab.Select(kv => $"{kv.Value} x {kv.Key}"))}");
             }
 
             var templates = sd.rackTemplates;

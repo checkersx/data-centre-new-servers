@@ -22,6 +22,9 @@ namespace NewServers
             Patch(h, typeof(ShopItem), nameof(ShopItem.UpdateVisualState), typeof(ShopCards), null, nameof(ShopCards.RefreshTextPostfix));
             Patch(h, typeof(ShopItem), nameof(ShopItem.ButtonBuyItem), typeof(ShopCards), nameof(ShopCards.UnlockGatePrefix), null);
             Patch(h, typeof(ShopItem), nameof(ShopItem.TryUnlock), typeof(ShopCards), nameof(ShopCards.UnlockGatePrefix), null);
+
+            Patch(h, typeof(StaticUIElements), nameof(StaticUIElements.AddMeesageInField), typeof(MessageQueueGuard), nameof(MessageQueueGuard.Prefix), null);
+            Patch(h, typeof(StaticUIElements), nameof(StaticUIElements.UpdateMessageDisplay), typeof(MessageQueueGuard), nameof(MessageQueueGuard.Prefix), null);
         }
 
         static void Patch(HarmonyLib.Harmony h, Type type, string method, Type patchType, string prefix, string postfix)

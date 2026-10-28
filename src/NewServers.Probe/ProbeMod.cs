@@ -6,7 +6,7 @@ using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(NewServers.Probe.ProbeMod), "NewServers.Probe", "0.1.0", "checkersx")]
+[assembly: MelonInfo(typeof(NewServers.Probe.ProbeMod), "NewServers.Probe", "0.2.0", "checkersx")]
 [assembly: MelonGame("Waseku", "Data Center")]
 
 namespace NewServers.Probe
@@ -34,7 +34,7 @@ namespace NewServers.Probe
             Directory.CreateDirectory(dir);
             var path = Path.Combine(dir, $"probe_{DateTime.Now:yyyy-MM-dd_HH-mm-ss}.log");
             _out = new StreamWriter(path, false, Encoding.UTF8) { AutoFlush = true };
-            Log($"NewServers.Probe 0.1.0 writing to {path}", console: true);
+            Log($"NewServers.Probe 0.2.0 writing to {path}", console: true);
             Patches.Install(HarmonyInstance);
         }
 
