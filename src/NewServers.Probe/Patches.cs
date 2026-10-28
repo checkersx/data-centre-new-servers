@@ -36,13 +36,17 @@ namespace NewServers.Probe
             Patch(h, typeof(ShopItem), nameof(ShopItem.TryUnlock), nameof(TryUnlockPre), nameof(TryUnlockPost));
             Patch(h, typeof(ShopItem), nameof(ShopItem.UnlockButton), nameof(UnlockButtonPre), null);
             Patch(h, typeof(TechnicianManager), nameof(TechnicianManager.SendTechnician), nameof(SendTechPre), null);
+
+            // Is the save's SaveData visible at serialisation time? (A fallback place to edit save data.)
+            Patch(h, typeof(Il2CppSystem.Runtime.Serialization.Formatters.Binary.BinaryFormatter), "Serialize", nameof(FormatterSerializePre), null,
+                new[] { typeof(Il2CppSystem.IO.Stream), typeof(Il2CppSystem.Object) });
         }
 
-        static void Patch(HarmonyLib.Harmony h, Type type, string method, string prefix, string postfix)
+        static void Patch(HarmonyLib.Harmony h, Type type, string method, string prefix, string postfix, Type[] args = null)
         {
             try
             {
-                var target = AccessTools.Method(type, method);
+                var target = args == null ? AccessTools.Method(type, method) : AccessTools.Method(type, method, args);
                 if (target == null) { Log($"patch {type.Name}.{method}: not found", console: true); return; }
                 h.Patch(target,
                     prefix: prefix == null ? null : new HarmonyMethod(AccessTools.Method(typeof(Patches), prefix)),
@@ -187,6 +191,15 @@ namespace NewServers.Probe
         static void TryUnlockPre(ShopItem __instance) => Guard("TryUnlockPre", () => Log($">> ShopItem.TryUnlock {UnlockState(__instance)}", console: true));
         static void TryUnlockPost(ShopItem __instance) => Guard("TryUnlockPost", () => Log($"<< ShopItem.TryUnlock {UnlockState(__instance)}", console: true));
         static void UnlockButtonPre(ShopItem __instance) => Guard("UnlockButtonPre", () => Log($">> ShopItem.UnlockButton {UnlockState(__instance)}"));
+
+        static int _serializeCalls;
+        static void FormatterSerializePre(Il2CppSystem.Object __1) => Guard("FormatterSerializePre", () =>
+        {
+            if (++_serializeCalls > 50) return;
+            var sd = __1?.TryCast<SaveData>();
+            Log($">> BinaryFormatter.Serialize(graph={(__1 == null ? "null" : __1.GetIl2CppType().FullName)})", console: sd != null);
+            if (sd != null) Dumps.Save("BinaryFormatter.Serialize", sd);
+        });
 
         static void SendTechPre(NetworkSwitch __0, Server __1) => Guard("SendTechPre", () =>
             Log($">> TechnicianManager.SendTechnician server={(__1 == null ? "null" : $"{__1.ServerID} prefabID={__1.prefabID}")} switch={(__0 == null ? "null" : "yes")}", console: true));

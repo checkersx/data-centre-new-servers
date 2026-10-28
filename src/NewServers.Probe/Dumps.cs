@@ -374,6 +374,15 @@ namespace NewServers.Probe
                 }
             }
 
+            var switches = sd.networkData?.switches;
+            if (switches != null)
+            {
+                var byType = new SortedDictionary<int, int>();
+                for (int i = 0; i < switches.Count; i++)
+                    byType[switches[i].switchType] = byType.TryGetValue(switches[i].switchType, out var n) ? n + 1 : 1;
+                Log($"   switches={switches.Count}: {string.Join("; ", byType.Select(kv => $"{kv.Value} x type {kv.Key}"))}");
+            }
+
             var cables = sd.networkData?.cables;
             if (cables != null)
             {

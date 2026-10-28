@@ -1,13 +1,13 @@
 using System;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(NewServers.NewServersMod), "New Servers", "0.3.0", "checkersx")]
+[assembly: MelonInfo(typeof(NewServers.NewServersMod), "New Servers", "0.4.0", "checkersx")]
 [assembly: MelonGame("Waseku", "Data Center")]
 
 namespace NewServers
 {
-    // Adds Gen 2/3/4 versions of every vanilla server: same size and model, more IOPS.
-    // Saves stay vanilla on disk (see SaveCompat), so removing the mod never breaks a save.
+    // Adds Gen 2/3/4 versions of every vanilla server (same model, more IOPS, faster ports) and a
+    // starter switch with 4 extra SFP ports. Saves stay vanilla on disk (see SaveCompat).
     public class NewServersMod : MelonMod
     {
         internal static MelonLogger.Instance Log;
@@ -29,8 +29,9 @@ namespace NewServers
         {
             try
             {
-                if (Registry.EnsureRegistered(reason))
-                    ShopCards.EnsureCards();
+                if (!Registry.EnsureRegistered(reason)) return;
+                Switches.EnsureRegistered(); // optional: the servers still work if this fails
+                ShopCards.EnsureCards();
             }
             catch (Exception e)
             {

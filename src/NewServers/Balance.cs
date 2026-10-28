@@ -15,6 +15,17 @@ namespace NewServers
             _ => throw new ArgumentOutOfRangeException(nameof(gen)),
         };
 
+        // A family's bigger server (7U) is 1.2x as dense as its smaller one (3U) in the same Gen. That is
+        // enough for six 7U (42U) to out-perform sixteen 3U (48U), while staying below the next Gen's 3U.
+        public const double BigServerDensity = 1.2;
+
+        // The bigger server costs more per IOPS than the smaller one: vanilla already charges ~1.6x for
+        // three families, and this floor gives the fourth (Mainframe, ~1.0x in vanilla) a premium too.
+        public const double BigServerMinPricePremium = 1.2;
+
+        public static int Iops(int gen, int sizeInU, bool bigger) =>
+            (int)(Math.Round(IopsPerU(gen) * sizeInU * (bigger ? BigServerDensity : 1.0) / 1000.0) * 1000);
+
         // Each Gen costs 1.1x the previous Gen per IOPS, in money and in XP, compounding from vanilla.
         public static double Premium(int gen) => Math.Pow(1.1, gen - 1);
 

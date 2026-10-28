@@ -22,7 +22,8 @@ namespace NewServers
 
         static readonly Dictionary<string, ShopItem> CardsByKey = new();
         static readonly Dictionary<int, ShopItem> VanillaCardsByIndex = new();
-        static bool _textsLogged;
+        static ShopItem _vanillaSwitch, _sfpSwitch;
+        static bool _textsLogged, _switchTextLogged;
 
         public static void EnsureCards()
         {
@@ -36,11 +37,17 @@ namespace NewServers
 
             CardsByKey.Clear();
             VanillaCardsByIndex.Clear();
+            _vanillaSwitch = _sfpSwitch = null;
             for (int i = 0; i < items.Length; i++)
             {
                 var so = items[i] == null ? null : items[i].shopItemSO;
-                if (so != null && IsServer(so.itemType) && so.itemID < Registry.VanillaCount)
+                if (so == null) continue;
+                if (IsServer(so.itemType) && so.itemID < Registry.VanillaCount)
                     VanillaCardsByIndex[so.itemID] = items[i];
+                else if (so.itemType == PlayerManager.ObjectInHand.Switch && so.itemID == Switches.TwinIndex)
+                    _vanillaSwitch = items[i];
+                else if (so.itemType == PlayerManager.ObjectInHand.Switch && so.itemID == Switches.SfpSwitchItemID)
+                    _sfpSwitch = items[i];
             }
 
             var added = new List<ShopItem>();
@@ -55,24 +62,15 @@ namespace NewServers
                     continue;
                 }
 
-                var familyRow = vanilla.transform.parent;
-                if (!rowFor.TryGetValue(familyRow.GetInstanceID(), out var row)) row = familyRow;
-                if (CardCount(row) >= RowCapacity) row = AddRowBelow(row);
-                rowFor[familyRow.GetInstanceID()] = row;
+                added.Add(CloneCard(vanilla, v.SO, v.Key, v.Label, rowFor));
+            }
 
-                // Clone under the inactive holder so Awake sees our SO and guid, then move into the row.
-                var go = Object.Instantiate(vanilla.gameObject, Registry.Holder);
-                go.name = $"ShopCard.NewServers.{v.Key}";
-                var card = go.GetComponent<ShopItem>();
-                card.shopItemSO = v.SO;
-                card.guid = GuidPrefix + v.Key;
-                card.isUnlocked = false;
-                card.itemDisplayName = v.Label;
-                go.transform.SetParent(row, false);
-                go.transform.SetAsLastSibling();
-
-                CardsByKey[v.Key] = card;
-                added.Add(card);
+            if (Switches.Ready)
+            {
+                if (_vanillaSwitch == null)
+                    NewServersMod.Log.Warning("No starter switch shop card found; the new switch will not be sold.");
+                else
+                    added.Add(CloneCard(_vanillaSwitch, Switches.SO, Switches.Key, Switches.Label, rowFor));
             }
 
             var extended = new Il2CppReferenceArray<ShopItem>(items.Length + added.Count);
@@ -81,6 +79,31 @@ namespace NewServers
             shop.shopItems = extended;
             NewServersMod.Log.Msg($"Added {added.Count} shop cards.");
         }
+
+        // Copy a vanilla card into its row (or a new row below it once the row is full).
+        static ShopItem CloneCard(ShopItem vanilla, ShopItemSO so, string key, string label, Dictionary<int, Transform> rowFor)
+        {
+            var vanillaRow = vanilla.transform.parent;
+            if (!rowFor.TryGetValue(vanillaRow.GetInstanceID(), out var row)) row = vanillaRow;
+            if (CardCount(row) >= RowCapacity) row = AddRowBelow(row);
+            rowFor[vanillaRow.GetInstanceID()] = row;
+
+            // Clone under the inactive holder so Awake sees our SO and guid, then move into the row.
+            var go = Object.Instantiate(vanilla.gameObject, Registry.Holder);
+            go.name = $"ShopCard.NewServers.{key}";
+            var card = go.GetComponent<ShopItem>();
+            card.shopItemSO = so;
+            card.guid = GuidPrefix + key;
+            card.isUnlocked = false;
+            card.itemDisplayName = label;
+            go.transform.SetParent(row, false);
+            go.transform.SetAsLastSibling();
+
+            CardsByKey[key] = card;
+            return card;
+        }
+
+        static bool IsSwitchCard(ShopItem card) => card != null && card.guid == GuidPrefix + Switches.Key;
 
         static int CardCount(Transform row)
         {
@@ -120,6 +143,20 @@ namespace NewServers
         {
             try
             {
+                if (IsSwitchCard(__instance) && __instance.txtName != null)
+                {
+                    var switchText = _vanillaSwitch?.txtName?.text ?? "";
+                    if (!_switchTextLogged && _vanillaSwitch != null)
+                    {
+                        _switchTextLogged = true;
+                        NewServersMod.Log.Msg($"Vanilla switch card text: name='{switchText.Replace("\n", "\\n")}'");
+                    }
+                    var switchName = Switches.MakeName(switchText);
+                    __instance.txtName.text = switchName;
+                    __instance.itemDisplayName = switchName.Split('\n')[0];
+                    return;
+                }
+
                 var v = VariantOf(__instance);
                 if (v == null || __instance.txtName == null) return;
                 VanillaCardsByIndex.TryGetValue(v.TwinIndex, out var vanilla);
@@ -188,11 +225,24 @@ namespace NewServers
         {
             try
             {
-                var v = VariantOf(__instance);
-                if (v == null || __instance.isUnlocked) return true;
+                if (__instance == null || __instance.isUnlocked) return true;
 
                 ShopItem below;
                 string belowName;
+                var v = VariantOf(__instance);
+                if (IsSwitchCard(__instance))
+                {
+                    // The combined switch comes after the 4x SFP switch.
+                    below = _sfpSwitch;
+                    belowName = _sfpSwitch?.itemDisplayName;
+                    if (string.IsNullOrEmpty(belowName)) belowName = "the 4 x SFP switch";
+                    if (below == null || below.isUnlocked) return true;
+                    NewServersMod.Log.Msg($"Blocked unlocking the {Switches.Label}: {belowName} is still locked.");
+                    StaticUIElements.instance?.AddMeesageInField($"Unlock {belowName} first.");
+                    return false;
+                }
+                if (v == null) return true;
+
                 var prev = Registry.Previous(v);
                 if (prev == null)
                 {

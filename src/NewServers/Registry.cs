@@ -106,15 +106,14 @@ namespace NewServers
                 vanilla.Add((i, go, s));
             }
 
-            // XP per IOPS comes from the family's largest vanilla server: the smallest ones are starter
-            // items (one unlocks at 0 XP), so their rate would make upgrades nearly free.
-            var xpRateByType = vanilla
+            static double PricePerIops(Server s) => s.shopItemSO.price / (s.maxProcessingSpeed * Balance.IopsUnit);
+
+            // Per family (serverType): its smallest and biggest vanilla server.
+            var families = vanilla
                 .GroupBy(x => x.server.serverType)
-                .ToDictionary(g => g.Key, g =>
-                {
-                    var big = g.OrderByDescending(x => x.server.sizeInU).First().server;
-                    return big.shopItemSO.xpToUnlock / (big.maxProcessingSpeed * Balance.IopsUnit);
-                });
+                .ToDictionary(g => g.Key, g => (
+                    small: g.OrderBy(x => x.server.sizeInU).First().server,
+                    big: g.OrderByDescending(x => x.server.sizeInU).First().server));
 
             int next = prefabs.Length;
             foreach (var gen in Balance.Gens)
@@ -122,9 +121,18 @@ namespace NewServers
                 {
                     var color = ColorOf(go.name);
                     var family = FamilyLabels.TryGetValue(color, out var label) ? label : color;
-                    int vanillaIops = (int)Math.Round(s.maxProcessingSpeed * Balance.IopsUnit);
-                    int iops = Balance.IopsPerU(gen) * s.sizeInU;
-                    double pricePerIops = (double)s.shopItemSO.price / vanillaIops;
+                    var (small, big) = families[s.serverType];
+                    bool bigger = s.sizeInU > small.sizeInU;
+                    int iops = Balance.Iops(gen, s.sizeInU, bigger);
+
+                    // Money: the vanilla twin's price per IOPS, never less than a premium over the family's small server.
+                    double pricePerIops = bigger
+                        ? Math.Max(PricePerIops(s), PricePerIops(small) * Balance.BigServerMinPricePremium)
+                        : PricePerIops(s);
+
+                    // XP per IOPS comes from the family's biggest vanilla server: the smallest ones are starter
+                    // items (one unlocks at 0 XP), so their rate would make upgrades nearly free.
+                    double xpPerIops = big.shopItemSO.xpToUnlock / (big.maxProcessingSpeed * Balance.IopsUnit);
 
                     var v = new Variant
                     {
@@ -136,7 +144,7 @@ namespace NewServers
                         Index = next++,
                         Iops = iops,
                         Price = Balance.RoundTo10(iops * pricePerIops * Balance.Premium(gen)),
-                        Xp = Balance.RoundTo10(iops * xpRateByType[s.serverType] * Balance.Premium(gen)),
+                        Xp = Balance.RoundTo10(iops * xpPerIops * Balance.Premium(gen)),
                         MaxProcessingSpeed = iops / Balance.IopsUnit,
                         TwinSO = s.shopItemSO,
                     };
