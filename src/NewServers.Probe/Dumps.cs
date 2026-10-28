@@ -228,6 +228,18 @@ namespace NewServers.Probe
                     if (!examples.ContainsKey(key)) examples[key] = l;
                 }
                 Log($"{kind}[{i}] '{go.name}' size={(usable == null ? -1 : usable.sizeInU)}U ports={links.Length}");
+                // Full layout and faceplate size: where is there room for extra ports?
+                var bodyMf = go.GetComponent<MeshFilter>();
+                if (bodyMf != null && bodyMf.sharedMesh != null)
+                    Log($"   body mesh {bodyMf.sharedMesh.name} size={V(bodyMf.sharedMesh.bounds.size)} center={V(bodyMf.sharedMesh.bounds.center)}");
+                if (kind == "switch" || kind == "server")
+                {
+                    var layout = new List<string>();
+                    for (int k = 0; k < links.Length; k++)
+                        layout.Add($"{links[k].name}@({links[k].transform.localPosition.x:F4},{links[k].transform.localPosition.y:F4})");
+                    Log($"   ports x,y: {string.Join(" ", layout)}");
+                }
+
                 foreach (var kv in groups)
                 {
                     var l = examples[kv.Key];
@@ -237,9 +249,9 @@ namespace NewServers.Probe
                     if (r != null)
                         for (int m = 0; m < r.sharedMaterials.Length; m++)
                             mats.Add(r.sharedMaterials[m] == null ? "null" : r.sharedMaterials[m].name);
-                    var mesh = mf == null || mf.sharedMesh == null ? "-" : $"{mf.sharedMesh.name} size={V(mf.sharedMesh.bounds.size)}";
+                    var mesh = mf == null || mf.sharedMesh == null ? "-" : $"{mf.sharedMesh.name} size={V(mf.sharedMesh.bounds.size)} center={V(mf.sharedMesh.bounds.center)}";
                     Log($"   {kv.Value} x {kv.Key}");
-                    Log($"      e.g. {PathOf(l.transform, go.transform)} lpos={V(l.transform.localPosition)} lscale={V(l.transform.localScale)} " +
+                    Log($"      e.g. {PathOf(l.transform, go.transform)} lpos={V(l.transform.localPosition)} lrot={V(l.transform.localRotation.eulerAngles)} lscale={V(l.transform.localScale)} " +
                         $"renderer={(r == null ? "-" : PathOf(r.transform, go.transform))} mesh={mesh} mats=[{string.Join(", ", mats)}]");
                 }
             }
@@ -311,7 +323,15 @@ namespace NewServers.Probe
 
             // New Servers variants (prefabID beyond the vanilla 8): do they reach their max?
             foreach (var s in live.Where(x => x.prefabID >= 8).Take(40))
-                Log($"  upgraded: {s.ServerID} prefabID={s.prefabID} current={s.currentProcessingSpeed} max={s.maxProcessingSpeed} on={s.isOn} customer={s.GetCustomerID()}");
+            {
+                var ports = new List<string>();
+                var links = s.cablelinks;
+                if (links != null)
+                    for (int k = 0; k < links.Length; k++)
+                        ports.Add(links[k] == null ? "null"
+                            : $"{(links[k].isSFPPort ? "cage" : "rj45")} supported={links[k].sfpTypeSupported} inserted={links[k].sfpTypeInserted} speed={links[k].connectionSpeed}");
+                Log($"  upgraded: {s.ServerID} prefabID={s.prefabID} current={s.currentProcessingSpeed} max={s.maxProcessingSpeed} on={s.isOn} customer={s.GetCustomerID()} ports=[{string.Join(" | ", ports)}]");
+            }
 
             // Busiest servers and their link speeds: does link speed cap throughput?
             foreach (var s in live.OrderByDescending(x => x.currentProcessingSpeed).Take(8))

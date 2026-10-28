@@ -154,6 +154,7 @@ namespace NewServers
                     cs.maxProcessingSpeed = v.MaxProcessingSpeed;
                     cs.prefabID = v.Index;
                     cs.shopItemSO = v.SO;
+                    Ports.Configure(cs, gen);
 
                     Variants.Add(v);
                     ByIndexMap[v.Index] = v;

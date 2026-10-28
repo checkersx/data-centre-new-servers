@@ -137,7 +137,7 @@ namespace NewServers
         }
 
         // Vanilla: "System X 3U 5000 IOPS\n<size=-3>EOL: 4:00:00</size>"
-        // Ours:    "System X 3U Gen 2 9000 IOPS\n<size=-3>EOL: 4:00:00</size>"
+        // Ours:    "System X 3U Gen 3 15000 IOPS\n<size=-3>EOL: 4:00:00 | 2x SFP</size>"
         static string MakeName(string vanillaText, Variant v)
         {
             if (string.IsNullOrWhiteSpace(vanillaText)) return v.Label;
@@ -154,6 +154,12 @@ namespace NewServers
             first = at >= 0 ? first.Insert(at + size.Length, $" Gen {v.Gen}") : $"{first} Gen {v.Gen}";
 
             lines[0] = first;
+            var ports = $" | {Ports.Label(v.Gen)}";
+            if (lines.Length > 1)
+            {
+                int close = lines[1].LastIndexOf("</size>", StringComparison.Ordinal);
+                lines[1] = close >= 0 ? lines[1].Insert(close, ports) : lines[1] + ports;
+            }
             return string.Join("\n", lines);
         }
 
