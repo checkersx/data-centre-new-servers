@@ -2,8 +2,8 @@ Adds [b]Gen 2, Gen 3 and Gen 4[/b] versions of every server to the shop, plus a 
 
 Late in the game, a big customer means filling rack after rack with the same 3U servers and cabling every one. Next-Gen servers do that job in less space with fewer cables. They cost more money and XP, so the normal servers are still worth buying early on.
 
-[h2]⚠ This is a code mod: one manual step is needed[/h2]
-The Workshop downloads the mod, but Data Center does [b]not[/b] install code mods by itself. After subscribing, follow [b]Install[/b] below. It takes about a minute.
+[h2]⚠ This is a code mod: check how to install it[/h2]
+If you have [b]WorkshopModSync[/b], just subscribe and start the game. If you don't, Data Center won't install code mods by itself, so there's one file to copy. See [b]Install[/b] below. It takes about a minute.
 
 [h2]What it adds[/h2]
 [table]
@@ -29,7 +29,16 @@ If you already use other code mods, you most likely have these. Otherwise:
 [*][b]A fix-up plugin[/b], or no code mods load at all: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3797166996]DS-InteropFix[/url] or [url=https://github.com/mleem97/Il2CppAssemblyFixer]Il2CppAssemblyFixer[/url]. Follow its own instructions.
 [/olist]
 
-[h2]Install[/h2]
+[h2]Install: easiest, with WorkshopModSync[/h2]
+If you have the [b]WorkshopModSync[/b] helper, Workshop mods install themselves:
+[olist]
+[*]Subscribe to this mod.
+[*]Start the game. That's it. WorkshopModSync copies your subscribed mods into place each time the game starts, updates included.
+[/olist]
+[b]Do I have it?[/b] Open your game folder (Steam Library → right-click [b]Data Center[/b] → [b]Manage[/b] → [b]Browse local files[/b]) and look in the [b]Plugins[/b] folder. If [b]WorkshopModSync.dll[/b] is there, you have it. It's made by another modder and comes with the DhcpMod mod on the Workshop.
+
+[h2]Install: without WorkshopModSync (copy one file)[/h2]
+Data Center downloads Workshop mods into a folder of its own, which MelonLoader doesn't look in, so copy the file across once:
 [olist]
 [*]Subscribe to this mod.
 [*]Start Data Center, wait for the main menu, then quit. (The game copies the download into its folder.)
@@ -40,7 +49,6 @@ If you already use other code mods, you most likely have these. Otherwise:
 [*]Go back to the game folder from step 3 (the one with Data Center.exe), open its [b]Mods[/b] folder, and paste.
 [*]Start the game. The MelonLoader console shows [b]Next-Gen Hardware v1.0.0[/b], and the shop has "Gen 2", "Gen 3" and "Gen 4" servers.
 [/olist]
-[b]Shortcut:[/b] a Workshop sync helper (WorkshopModSync, gregPlugin.SteamModfix) does steps 3–7 for you.
 [b]Had "New Servers"?[/b] That's this mod's old name. Delete [b]NewServers.dll[/b] from your Mods folder. Your unlocks and servers carry over.
 
 [h2]Using Gen 3 and Gen 4 servers[/h2]
@@ -58,8 +66,9 @@ Their SFP slots need a module before a cable connects, just like the fibre switc
 
 [h2]Updating and uninstalling[/h2]
 [list]
-[*][b]Update:[/b] Steam downloads updates automatically. With the game closed, copy the new NextGenHardware.dll across again (Install steps 2–7).
-[*][b]Uninstall:[/b] with the game closed, delete NextGenHardware.dll from the game's Mods folder, then unsubscribe.
+[*][b]Update with WorkshopModSync:[/b] nothing to do. The update installs the next time you start the game.
+[*][b]Update without it:[/b] Steam downloads updates automatically. With the game closed, copy the new NextGenHardware.dll across again (steps 2–7 of the copy-one-file install).
+[*][b]Uninstall:[/b] with the game closed, unsubscribe first (so WorkshopModSync doesn't put it back), then delete NextGenHardware.dll from the game's Mods folder.
 [/list]
 
 [h2]Problems?[/h2]

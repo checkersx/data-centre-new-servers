@@ -73,13 +73,24 @@ You need these once, for any code mod in Data Center. If you already use other c
 
 ## Install
 
-There's only one file to install: **`NextGenHardware.dll`**. It needs to end up in the **`Mods`** folder inside your Data Center game folder.
+There's only one file to install: **`NextGenHardware.dll`**. MelonLoader only loads code mods from the **`Mods`** folder inside your Data Center game folder, so that's where the file needs to end up. Pick whichever of these fits you.
 
-### From the Steam Workshop
+### Easiest: Steam Workshop with WorkshopModSync
 
-The Workshop downloads the mod, but Data Center doesn't put code mods where MelonLoader looks for them, so you copy the file across once:
+If you have the **WorkshopModSync** helper, Workshop mods install themselves:
 
-1. Click **Subscribe** on the mod's Workshop page.
+1. Click **Subscribe** on the [Workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3829635443).
+2. Start the game.
+
+That's it. Every time the game starts, WorkshopModSync copies your subscribed Workshop mods into the right folders, updates included.
+
+**Do I have it?** Open your game folder (in your Steam Library, right-click **Data Center** → **Manage** → **Browse local files**) and look in its **`Plugins`** folder. If `WorkshopModSync.dll` is there, you have it. WorkshopModSync is made by another modder and comes with the DhcpMod mod on the Workshop.
+
+### Steam Workshop without WorkshopModSync: copy one file
+
+Data Center downloads Workshop mods into a folder of its own, which MelonLoader doesn't look in. So you copy the file across once:
+
+1. Click **Subscribe** on the [Workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3829635443).
 2. Start Data Center, wait for the main menu, then quit. This lets the game copy the download into its own folder.
 3. Open your game folder: in your Steam Library, right-click **Data Center** → **Manage** → **Browse local files**.
 4. Open these folders in turn: **`Data Center_Data`** → **`StreamingAssets`** → **`Mods`**.
@@ -87,8 +98,6 @@ The Workshop downloads the mod, but Data Center doesn't put code mods where Melo
 6. Inside it, open the **`Mods`** folder and copy **`NextGenHardware.dll`** (right-click → Copy).
 7. Go back to the game folder from step 3 (the one with `Data Center.exe` in it), open its **`Mods`** folder, and paste.
 8. Start the game.
-
-**Shortcut:** if you use a Workshop sync helper such as WorkshopModSync or gregPlugin.SteamModfix, it copies the file for you. Just subscribe and start the game.
 
 ### From GitHub (without the Workshop)
 
@@ -127,7 +136,8 @@ Any module type works and is fast enough for one server. The **SFP RJ45** module
 
 ## Updating
 
-- **Workshop:** Steam downloads updates automatically. Copy the new `NextGenHardware.dll` across again, as in steps 2–7 of [Install](#install), with the game closed. (With a sync helper, it happens by itself.)
+- **Workshop with WorkshopModSync:** nothing to do. Steam downloads the update, and WorkshopModSync installs it the next time you start the game.
+- **Workshop without WorkshopModSync:** Steam downloads the update. With the game closed, copy the new `NextGenHardware.dll` across again, as in steps 2–7 of [Steam Workshop without WorkshopModSync](#steam-workshop-without-workshopmodsync-copy-one-file).
 - **GitHub:** download the new DLL and replace the old one, with the game closed.
 
 ---
@@ -135,8 +145,8 @@ Any module type works and is fast enough for one server. The **SFP RJ45** module
 ## Uninstalling
 
 1. Close the game.
-2. Delete `NextGenHardware.dll` from your game's `Mods` folder.
-3. If you subscribed on the Workshop, unsubscribe as well. Otherwise a sync helper copies the file straight back.
+2. If you subscribed on the Workshop, unsubscribe first. Otherwise WorkshopModSync copies the file straight back.
+3. Delete `NextGenHardware.dll` from your game's `Mods` folder.
 
 Your saves still load afterwards (see [Saves](#saves)).
 

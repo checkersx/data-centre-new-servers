@@ -1,8 +1,12 @@
 Next-Gen Hardware for Data Center: how to install
 =================================================
 
-This is a code mod. The Steam Workshop downloads it, but Data Center does not
-install code mods by itself, so you copy ONE file by hand.
+USING WORKSHOPMODSYNC? Then you don't need these steps: it installs the mod
+for you each time the game starts. (You have it if your game folder's Plugins
+folder contains WorkshopModSync.dll.)
+
+Otherwise: this is a code mod. The Steam Workshop downloads it, but Data Center
+does not install code mods by itself, so you copy ONE file by hand.
 
 BEFORE YOU START (once, for any code mod)
   - MelonLoader 0.7.3 must be installed for Data Center.
@@ -35,8 +39,9 @@ UPDATING
   NextGenHardware.dll into the game's Mods folder again.
 
 UNINSTALLING
-  With the game closed, delete NextGenHardware.dll from the game's Mods folder,
-  then unsubscribe. Your saves still load without the mod.
+  With the game closed, unsubscribe first (so WorkshopModSync doesn't copy it
+  back), then delete NextGenHardware.dll from the game's Mods folder. Your saves
+  still load without the mod.
 
 More help, and the source code (GPL-3.0):
   https://github.com/checkersx/data-centre-next-gen-hardware

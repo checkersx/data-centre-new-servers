@@ -1,0 +1,254 @@
+<!doctype html>
+<!--
+  Source of workshop/preview.jpg (1024x1024): CSS 3D servers on a dark stage, no game assets.
+  Render with headless Edge, then save the PNG as preview.jpg:
+    msedge --headless=new --disable-gpu --hide-scrollbars --window-size=1024,1024 --virtual-time-budget=3000 --screenshot=render.png file:///<path>/preview-scene.html
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root {
+    --glow: #59b8ff;
+    --glow-core: #c9ecff;
+    --metal-hi: #2b3445;
+    --metal: #161c27;
+    --metal-lo: #0b0f16;
+  }
+  html, body { margin: 0; width: 1024px; height: 1024px; overflow: hidden; background: #010204; }
+  .canvas {
+    position: relative; width: 1024px; height: 1024px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 70% 45% at 50% 58%, rgba(30, 90, 200, 0.35), transparent 70%),
+      radial-gradient(ellipse 120% 80% at 50% 45%, #0a1630 0%, #050a18 45%, #020409 75%, #010204 100%);
+  }
+  /* glossy floor below the horizon */
+  .floor {
+    position: absolute; left: 0; right: 0; top: 745px; bottom: 0;
+    background: linear-gradient(180deg, rgba(40, 110, 230, 0.10), rgba(2, 4, 10, 0.0) 35%),
+                linear-gradient(180deg, #050b18, #010204);
+  }
+  .horizon {
+    position: absolute; left: 6%; right: 6%; top: 744px; height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(110, 180, 255, 0.35), transparent);
+    filter: blur(1px);
+  }
+  .blob { position: absolute; border-radius: 50%; filter: blur(50px); }
+  .beam { position: absolute; top: -120px; width: 90px; height: 900px; transform-origin: 50% 0;
+          background: linear-gradient(180deg, rgba(120, 180, 255, 0.10), rgba(120, 180, 255, 0.0) 85%); filter: blur(18px); }
+  .speck { position: absolute; border-radius: 50%; background: rgba(120, 190, 255, 0.55); filter: blur(2px); }
+
+  .title {
+    position: absolute; top: 44px; left: 0; right: 0; text-align: center;
+    font-family: "Segoe UI Black", "Segoe UI", sans-serif; font-weight: 900;
+    font-size: 126px; line-height: 0.96; letter-spacing: 1px; color: #fff;
+    text-shadow: 0 0 28px rgba(90, 170, 255, 0.55), 0 0 4px rgba(170, 215, 255, 0.6), 0 6px 22px rgba(0, 0, 0, 0.9);
+  }
+  .title-rule {
+    position: absolute; top: 300px; left: 50%; width: 420px; margin-left: -210px; height: 3px; border-radius: 2px;
+    background: linear-gradient(90deg, transparent, var(--glow-core), transparent);
+    box-shadow: 0 0 14px 3px rgba(80, 170, 255, 0.55);
+  }
+
+  /* ---- 3D rig ---- */
+  .stage { position: absolute; inset: 0; perspective: 2000px; perspective-origin: 50% 45%; }
+  .group { position: absolute; -webkit-box-reflect: below 0px linear-gradient(transparent 50%, rgba(255, 255, 255, 0.38)); }
+  .rig { position: relative; transform-style: preserve-3d; }
+  .box { position: absolute; transform-style: preserve-3d; }
+  .face { position: absolute; backface-visibility: hidden; box-sizing: border-box; overflow: hidden; }
+
+  .top-face {
+    background:
+      linear-gradient(0deg, rgba(185, 225, 255, 0.55) 0 1.5px, rgba(120, 180, 255, 0.10) 1.5px, transparent 14%),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px),
+      linear-gradient(180deg, #232a37, #10141c);
+    box-shadow: inset 0 0 0 1px rgba(150, 190, 255, 0.10);
+  }
+  .top-face::after { /* lid seam */
+    content: ""; position: absolute; left: 0; right: 0; top: 34%; height: 1px; background: rgba(0, 0, 0, 0.55);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05);
+  }
+  .side-face {
+    background:
+      repeating-linear-gradient(180deg, transparent 0 9px, rgba(0, 0, 0, 0.45) 9px 11px) 14px 18% / 70px 64% no-repeat,
+      linear-gradient(90deg, #121722, #080b11);
+    box-shadow: inset 0 0 0 1px rgba(150, 190, 255, 0.07);
+  }
+
+  .front {
+    background: linear-gradient(180deg, #252d3c 0%, #161b26 10%, #0e121a 100%);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 0 0 1px rgba(140, 180, 255, 0.10);
+  }
+  .front::after { /* sheen */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(112deg, rgba(255, 255, 255, 0.09) 0%, rgba(255, 255, 255, 0.0) 38%, rgba(255, 255, 255, 0.0) 70%, rgba(255, 255, 255, 0.04) 100%);
+  }
+  .ear {
+    position: absolute; top: 0; bottom: 0; width: 15px;
+    background: linear-gradient(90deg, #2a3141, #151a24);
+    box-shadow: inset -1px 0 0 rgba(0, 0, 0, 0.6), inset 1px 0 0 rgba(255, 255, 255, 0.08);
+  }
+  .ear.l { left: 0; }
+  .ear.r { right: 0; transform: scaleX(-1); }
+  .screw {
+    position: absolute; left: 4px; width: 7px; height: 7px; border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #8a96a8, #39414f 60%, #1a1f28);
+  }
+
+  .bays { position: absolute; display: flex; gap: 3px; }
+  .bay {
+    position: relative; flex: 0 0 auto; border-radius: 2px;
+    background:
+      repeating-linear-gradient(180deg, #06080c 0 2px, #1b2231 2px 4px) 3px 4px / calc(100% - 6px) 62% no-repeat,
+      linear-gradient(180deg, #202838, #121722);
+    box-shadow: inset 0 0 0 1px #2c3648, inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  }
+  .bay::before { /* release lever */
+    content: ""; position: absolute; left: 3px; right: 3px; bottom: 9px; height: 3px; border-radius: 1px; background: #2f394c;
+  }
+  .led {
+    position: absolute; left: 4px; bottom: 3px; width: 4px; height: 3px; border-radius: 1px;
+    background: #9fe0ff; box-shadow: 0 0 4px 1px #3aa7ff, 0 0 9px 2px rgba(58, 167, 255, 0.55);
+  }
+  .led.g { background: #b8ffcf; box-shadow: 0 0 4px 1px #2fd36b, 0 0 9px 2px rgba(47, 211, 107, 0.5); }
+  .led.off { background: #1c2533; box-shadow: none; }
+
+  .grille {
+    position: absolute; border-radius: 3px; overflow: hidden;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, #9ad6ff 0%, #3a8cf0 32%, #12357a 66%, #061024 100%);
+    box-shadow: inset 0 0 0 1px #33415a, inset 0 0 14px rgba(0, 0, 0, 0.8);
+  }
+  .grille .mesh { position: absolute; inset: 0; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='24.25'><path d='M7 0 L14 4.04 L14 12.12 L7 16.17 L0 12.12 L0 4.04 Z M7 16.17 L7 24.25 M0 12.12 L-7 16.17 M14 12.12 L21 16.17' fill='none' stroke='%23070a10' stroke-width='3.2'/></svg>"); background-size: 9px 15.6px; }
+  .grille .fan { position: absolute; border-radius: 50%; background: radial-gradient(circle, rgba(0, 0, 0, 0.55) 0 18%, transparent 19% 100%), conic-gradient(from 0deg, rgba(0, 0, 0, 0.45) 0 12deg, transparent 12deg 40deg, rgba(0, 0, 0, 0.45) 40deg 52deg, transparent 52deg 80deg, rgba(0, 0, 0, 0.45) 80deg 92deg, transparent 92deg 120deg, rgba(0, 0, 0, 0.45) 120deg 132deg, transparent 132deg 160deg, rgba(0, 0, 0, 0.45) 160deg 172deg, transparent 172deg 200deg, rgba(0, 0, 0, 0.45) 200deg 212deg, transparent 212deg 240deg, rgba(0, 0, 0, 0.45) 240deg 252deg, transparent 252deg 280deg, rgba(0, 0, 0, 0.45) 280deg 292deg, transparent 292deg 320deg, rgba(0, 0, 0, 0.45) 320deg 332deg, transparent 332deg 360deg); }
+  .grille .shine { position: absolute; inset: 0; background: linear-gradient(160deg, rgba(255, 255, 255, 0.18), transparent 45%); }
+
+  .strip { position: absolute; height: 12px; border-radius: 2px; background: #0a0d13; box-shadow: inset 0 0 0 1px #232c3b; }
+  .power {
+    position: absolute; width: 9px; height: 9px; border-radius: 50%; top: 1px;
+    background: radial-gradient(circle, #0b0f16 45%, #8fd8ff 50%, #3aa7ff 70%, transparent 72%);
+    box-shadow: 0 0 6px 2px rgba(58, 167, 255, 0.7);
+  }
+  .dot { position: absolute; top: 4px; width: 4px; height: 4px; border-radius: 50%; background: #9fe0ff; box-shadow: 0 0 5px 1px #3aa7ff; }
+  .dot.amber { background: #ffe1a6; box-shadow: 0 0 5px 1px #ffa21f; }
+
+  /* the mod's Gen 4 light frame */
+  .bar { position: absolute; background: var(--glow-core); border-radius: 2px;
+         box-shadow: 0 0 5px 1px var(--glow), 0 0 14px 4px rgba(60, 150, 255, 0.55); }
+</style>
+</head>
+<body>
+<div class="canvas" id="canvas">
+  <div class="blob" style="left:40px; top:355px; width:460px; height:380px; background:rgba(40,110,255,0.22)"></div>
+  <div class="blob" style="left:530px; top:335px; width:460px; height:420px; background:rgba(40,110,255,0.22)"></div>
+  <div class="beam" style="left:300px; transform: rotate(14deg);"></div>
+  <div class="beam" style="left:640px; transform: rotate(-14deg);"></div>
+  <div id="specks"></div>
+  <div class="floor"></div>
+  <div class="horizon"></div>
+  <div class="blob" style="left:70px; top:723px; width:420px; height:50px; background:rgba(70,150,255,0.35); filter:blur(22px)"></div>
+  <div class="blob" style="left:540px; top:723px; width:420px; height:50px; background:rgba(70,150,255,0.35); filter:blur(22px)"></div>
+  <div class="stage" id="stage"></div>
+  <div class="title">NEXT-GEN<br>HARDWARE</div>
+  <div class="title-rule"></div>
+</div>
+
+<script>
+const W = 420, D = 230, H3 = 116, H7 = 271;
+
+function el(cls, style, parent) {
+  const e = document.createElement("div");
+  e.className = cls;
+  if (style) e.style.cssText = style;
+  if (parent) parent.appendChild(e);
+  return e;
+}
+
+// A w x h x d box centred on its own origin; returns the front face for decorating.
+function box(parent, w, h, d, x, y, side) {
+  const b = el("box", `left:${x}px; top:${y}px; width:${w}px; height:${h}px;`, parent);
+  const front = el("face front", `width:${w}px; height:${h}px; transform: translateZ(${d / 2}px);`, b);
+  el("face top-face", `width:${w}px; height:${d}px; top:${(h - d) / 2}px; transform: rotateX(90deg) translateZ(${h / 2}px);`, b);
+  const sideRot = side === "left" ? -90 : 90;
+  el("face side-face", `width:${d}px; height:${h}px; left:${(w - d) / 2}px; transform: rotateY(${sideRot}deg) translateZ(${w / 2}px);`, b);
+  return front;
+}
+
+function ears(front, h) {
+  for (const s of ["l", "r"]) {
+    const e = el(`ear ${s}`, "", front);
+    const n = h > 150 ? 4 : 2;
+    for (let i = 0; i < n; i++) el("screw", `top:${(h / n) * (i + 0.5) - 3.5}px;`, e);
+  }
+}
+
+function bays(front, x, y, n, bw, bh, seed) {
+  const row = el("bays", `left:${x}px; top:${y}px;`, front);
+  for (let i = 0; i < n; i++) {
+    const b = el("bay", `width:${bw}px; height:${bh}px;`, row);
+    const r = (i * 7 + seed * 13) % 11;
+    el(r === 3 ? "led g" : r === 8 ? "led off" : "led", "", b);
+  }
+}
+
+function grille(front, x, y, w, h, fans) {
+  const g = el("grille", `left:${x}px; top:${y}px; width:${w}px; height:${h}px;`, front);
+  for (const f of fans) el("fan", `left:${f[0] - f[2]}px; top:${f[1] - f[2]}px; width:${f[2] * 2}px; height:${f[2] * 2}px;`, g);
+  el("mesh", "", g);
+  el("shine", "", g);
+}
+
+function strip(front, x, y, w) {
+  const s = el("strip", `left:${x}px; top:${y}px; width:${w}px;`, front);
+  el("power", `right:6px;`, s);
+  for (let i = 0; i < 4; i++) el(i === 2 ? "dot amber" : "dot", `right:${24 + i * 9}px;`, s);
+}
+
+// Light frame along the front's edges, standing just proud of it so the glow spills over.
+function frame(front, w, h) {
+  const t = 3;
+  el("bar", `left:15px; right:15px; top:0; height:${t}px;`, front);
+  el("bar", `left:15px; right:15px; bottom:0; height:${t}px;`, front);
+  el("bar", `left:15px; top:0; bottom:0; width:${t}px;`, front);
+  el("bar", `right:15px; top:0; bottom:0; width:${t}px;`, front);
+}
+
+function server3U(rig, y, seed) {
+  const f = box(rig, W, H3, D, 0, y, "left");
+  ears(f, H3);
+  bays(f, 24, 12, 8, 26.5, 76, seed);
+  grille(f, 264, 12, 132, 76, [[35, 38, 32], [97, 38, 32]]);
+  strip(f, 24, 95, 372);
+  frame(f, W, H3);
+}
+
+function server7U(rig, y) {
+  const f = box(rig, W, H7, D, 0, y, "right");
+  ears(f, H7);
+  grille(f, 24, 12, 372, 110, [[48, 55, 46], [140, 55, 46], [232, 55, 46], [324, 55, 46]]);
+  bays(f, 24, 130, 12, 28.2, 55, 1);
+  bays(f, 24, 191, 12, 28.2, 55, 2);
+  strip(f, 24, 252, 372);
+  frame(f, W, H7);
+}
+
+const stage = document.getElementById("stage");
+
+// Soft out-of-focus specks of light in the background (fixed positions, so every render matches).
+const specks = document.getElementById("specks");
+[[120, 330, 5, .35], [205, 260, 3, .5], [318, 395, 4, .3], [452, 350, 2, .55], [575, 420, 3, .35], [690, 300, 5, .3],
+ [808, 360, 3, .45], [905, 270, 4, .35], [960, 440, 2, .5], [62, 470, 3, .4], [742, 410, 2, .5], [512, 335, 3, .3]]
+  .forEach(([x, y, r, o]) => el("speck", `left:${x}px; top:${y}px; width:${r * 2}px; height:${r * 2}px; opacity:${o};`, specks));
+
+// Left: two 3U servers stacked, facing in towards the centre.
+const gl = el("group", "left:58px; top:460px; width:420px; height:276px;", stage);
+const rl = el("rig", "width:420px; height:276px; transform: rotateX(-13deg) rotateY(21deg);", gl);
+server3U(rl, 36, 3);
+server3U(rl, 36 + H3 + 8, 5);
+
+// Right: one 7U, facing in towards the centre.
+const gr = el("group", "left:546px; top:460px; width:420px; height:276px;", stage);
+const rr = el("rig", "width:420px; height:276px; transform: rotateX(-13deg) rotateY(-21deg);", gr);
+server7U(rr, 5);
+</script>
+</body>
+</html>
