@@ -35,7 +35,7 @@ If you have the [b]WorkshopModSync[/b] helper, Workshop mods install themselves:
 [*]Subscribe to this mod.
 [*]Start the game. That's it. WorkshopModSync copies your subscribed mods into place each time the game starts, updates included.
 [/olist]
-[b]Do I have it?[/b] Open your game folder (Steam Library → right-click [b]Data Center[/b] → [b]Manage[/b] → [b]Browse local files[/b]) and look in the [b]Plugins[/b] folder. If [b]WorkshopModSync.dll[/b] is there, you have it. It's made by another modder and comes with the DhcpMod mod on the Workshop.
+[b]Do I have it?[/b] Open your game folder (Steam Library → right-click [b]Data Center[/b] → [b]Manage[/b] → [b]Browse local files[/b]) and look in the [b]Plugins[/b] folder. If [b]WorkshopModSync.dll[/b] is there, you have it. It's made by Bloody, the author of DHCP Mod, and comes with DHCP Mod on the Workshop.
 
 [h2]Install: without WorkshopModSync (copy one file)[/h2]
 Data Center downloads Workshop mods into a folder of its own, which MelonLoader doesn't look in, so copy the file across once:
