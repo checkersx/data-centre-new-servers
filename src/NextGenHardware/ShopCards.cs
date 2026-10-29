@@ -7,13 +7,14 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace NewServers
+namespace NextGenHardware
 {
     // Clones each vanilla server's shop card, one per Gen, into that family's row; when the row is
     // full a new row is added directly below it. Unlock state saves natively: the game keeps a
     // guid -> unlocked map and ignores unknown guids.
     internal static class ShopCards
     {
+        // Saved in the game's unlock states; keeps the mod's old name so existing unlocks still match.
         const string GuidPrefix = "newservers-";
 
         // Vanilla shop rows ("HL Blue", "HL Cables", ...) show at most four cards; MoreModules also
@@ -58,7 +59,7 @@ namespace NewServers
             {
                 if (!VanillaCardsByIndex.TryGetValue(v.TwinIndex, out var vanilla))
                 {
-                    NewServersMod.Log.Warning($"No vanilla shop card for {v.Label}; it will not be sold.");
+                    NextGenHardwareMod.Log.Warning($"No vanilla shop card for {v.Label}; it will not be sold.");
                     continue;
                 }
 
@@ -68,7 +69,7 @@ namespace NewServers
             if (Switches.Ready)
             {
                 if (_vanillaSwitch == null)
-                    NewServersMod.Log.Warning("No starter switch shop card found; the new switch will not be sold.");
+                    NextGenHardwareMod.Log.Warning("No starter switch shop card found; the new switch will not be sold.");
                 else
                     added.Add(CloneCard(_vanillaSwitch, Switches.SO, Switches.Key, Switches.Label, rowFor));
             }
@@ -77,7 +78,7 @@ namespace NewServers
             for (int i = 0; i < items.Length; i++) extended[i] = items[i];
             for (int i = 0; i < added.Count; i++) extended[items.Length + i] = added[i];
             shop.shopItems = extended;
-            NewServersMod.Log.Msg($"Added {added.Count} shop cards.");
+            NextGenHardwareMod.Log.Msg($"Added {added.Count} shop cards.");
         }
 
         // Copy a vanilla card into its row (or a new row below it once the row is full).
@@ -90,7 +91,7 @@ namespace NewServers
 
             // Clone under the inactive holder so Awake sees our SO and guid, then move into the row.
             var go = Object.Instantiate(vanilla.gameObject, Registry.Holder);
-            go.name = $"ShopCard.NewServers.{key}";
+            go.name = $"ShopCard.NextGenHardware.{key}";
             var card = go.GetComponent<ShopItem>();
             card.shopItemSO = so;
             card.guid = GuidPrefix + key;
@@ -117,7 +118,7 @@ namespace NewServers
         static Transform AddRowBelow(Transform row)
         {
             var clone = Object.Instantiate(row.gameObject, Registry.Holder);
-            clone.name = row.name + " NewServers";
+            clone.name = row.name + " NextGenHardware";
             for (int i = clone.transform.childCount - 1; i >= 0; i--)
             {
                 var child = clone.transform.GetChild(i);
@@ -149,7 +150,7 @@ namespace NewServers
                     if (!_switchTextLogged && _vanillaSwitch != null)
                     {
                         _switchTextLogged = true;
-                        NewServersMod.Log.Msg($"Vanilla switch card text: name='{switchText.Replace("\n", "\\n")}'");
+                        NextGenHardwareMod.Log.Msg($"Vanilla switch card text: name='{switchText.Replace("\n", "\\n")}'");
                     }
                     var switchName = Switches.MakeName(switchText);
                     __instance.txtName.text = switchName;
@@ -164,13 +165,13 @@ namespace NewServers
                 if (!_textsLogged && vanilla != null)
                 {
                     _textsLogged = true;
-                    NewServersMod.Log.Msg($"Vanilla card text: name='{vanillaText.Replace("\n", "\\n")}' price='{vanilla.txtPrice?.text}' xp='{vanilla.txtXpToUnlock?.text}'");
+                    NextGenHardwareMod.Log.Msg($"Vanilla card text: name='{vanillaText.Replace("\n", "\\n")}' price='{vanilla.txtPrice?.text}' xp='{vanilla.txtXpToUnlock?.text}'");
                 }
                 var name = MakeName(vanillaText, v);
                 __instance.txtName.text = name;
                 __instance.itemDisplayName = name.Split('\n')[0]; // the cart shows the first line only, like vanilla
             }
-            catch (Exception e) { NewServersMod.Log.Error($"RefreshTextPostfix: {e.Message}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"RefreshTextPostfix: {e.Message}"); }
         }
 
         // Vanilla: "System X 3U 5000 IOPS\n<size=-3>EOL: 4:00:00</size>"
@@ -237,7 +238,7 @@ namespace NewServers
                     belowName = _sfpSwitch?.itemDisplayName;
                     if (string.IsNullOrEmpty(belowName)) belowName = "the 4 x SFP switch";
                     if (below == null || below.isUnlocked) return true;
-                    NewServersMod.Log.Msg($"Blocked unlocking the {Switches.Label}: {belowName} is still locked.");
+                    NextGenHardwareMod.Log.Msg($"Blocked unlocking the {Switches.Label}: {belowName} is still locked.");
                     StaticUIElements.instance?.AddMeesageInField($"Unlock {belowName} first.");
                     return false;
                 }
@@ -257,13 +258,13 @@ namespace NewServers
                 }
 
                 if (below == null || below.isUnlocked) return true;
-                NewServersMod.Log.Msg($"Blocked unlocking {v.Label}: {belowName} is still locked.");
+                NextGenHardwareMod.Log.Msg($"Blocked unlocking {v.Label}: {belowName} is still locked.");
                 StaticUIElements.instance?.AddMeesageInField($"Unlock {belowName} first.");
                 return false;
             }
             catch (Exception e)
             {
-                NewServersMod.Log.Error($"UnlockGatePrefix: {e.Message}");
+                NextGenHardwareMod.Log.Error($"UnlockGatePrefix: {e.Message}");
                 return true;
             }
         }

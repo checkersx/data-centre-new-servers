@@ -2,7 +2,7 @@ using System;
 using HarmonyLib;
 using Il2Cpp;
 
-namespace NewServers
+namespace NextGenHardware
 {
     internal static class Patching
     {
@@ -17,6 +17,18 @@ namespace NewServers
 
             Patch(h, typeof(Server), nameof(Server.Start), typeof(Registry), null, nameof(Registry.ServerPostfix));
             Patch(h, typeof(Server), nameof(Server.ServerInsertedInRack), typeof(Registry), null, nameof(Registry.ServerPostfix));
+
+            foreach (var method in new[]
+            {
+                nameof(Server.Start), nameof(Server.ServerInsertedInRack), nameof(Server.OnLoadingComplete), nameof(Server.PowerButton),
+                nameof(Server.TurnOnCommonFunction), nameof(Server.TurnOffCommonFunctions), nameof(Server.ItIsBroken),
+                nameof(Server.RepairDevice), nameof(Server.ForceShutdownByAttack),
+            })
+                Patch(h, typeof(Server), method, typeof(Lights), null, nameof(Lights.SyncPostfix));
+
+            Patch(h, typeof(CableLink), nameof(CableLink.InsertSFP), typeof(Ports), null, nameof(Ports.CageBackPostfix));
+            Patch(h, typeof(CableLink), nameof(CableLink.RemoveSFP), typeof(Ports), null, nameof(Ports.CageBackPostfix));
+            Patch(h, typeof(CableLink), nameof(CableLink.InteractOnHover), typeof(Ports), null, nameof(Ports.OutlinePostfix));
 
             Patch(h, typeof(ShopItem), nameof(ShopItem.Start), typeof(ShopCards), null, nameof(ShopCards.RefreshTextPostfix));
             Patch(h, typeof(ShopItem), nameof(ShopItem.UpdateVisualState), typeof(ShopCards), null, nameof(ShopCards.RefreshTextPostfix));
@@ -34,7 +46,7 @@ namespace NewServers
                 var target = AccessTools.Method(type, method);
                 if (target == null)
                 {
-                    NewServersMod.Log.Error($"Patch target {type.Name}.{method} not found; the game may have changed.");
+                    NextGenHardwareMod.Log.Error($"Patch target {type.Name}.{method} not found; the game may have changed.");
                     return;
                 }
                 h.Patch(target,
@@ -43,7 +55,7 @@ namespace NewServers
             }
             catch (Exception e)
             {
-                NewServersMod.Log.Error($"Patching {type.Name}.{method} failed: {e.Message}");
+                NextGenHardwareMod.Log.Error($"Patching {type.Name}.{method} failed: {e.Message}");
             }
         }
     }

@@ -5,3 +5,9 @@ obj/
 
 # Private planning notes; this repo is public
 NOTES.md
+
+# Screenshots (Steam page material and bug shots); keep private until chosen for the README
+_media/
+
+# Workshop upload output (built by workshop/build-package.ps1)
+publish/

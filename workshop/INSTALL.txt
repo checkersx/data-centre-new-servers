@@ -1,0 +1,42 @@
+Next-Gen Hardware for Data Center: how to install
+=================================================
+
+This is a code mod. The Steam Workshop downloads it, but Data Center does not
+install code mods by itself, so you copy ONE file by hand.
+
+BEFORE YOU START (once, for any code mod)
+  - MelonLoader 0.7.3 must be installed for Data Center.
+  - A fix-up plugin (DS-InteropFix or Il2CppAssemblyFixer) must be installed,
+    or no code mods load at all.
+  If you already use other code mods, you most likely have both.
+
+INSTALL
+  1. Close the game.
+  2. Copy this file:
+         Mods\NextGenHardware.dll        (in the folder you're looking at now)
+     into the Mods folder inside your game folder:
+         ...\steamapps\common\Data Center\Mods\
+     To open the game folder: in your Steam Library, right-click Data Center,
+     then Manage, then Browse local files.
+     Use the Mods folder next to "Data Center.exe", NOT the one inside
+     Data Center_Data\StreamingAssets.
+  3. Start the game.
+
+CHECK IT WORKED
+  - The MelonLoader console window shows "Next-Gen Hardware v1.0.0".
+  - The in-game shop shows servers named "... Gen 2", "... Gen 3", "... Gen 4".
+
+HAD "NEW SERVERS"?
+  That's this mod's old name. Delete NewServers.dll from the game's Mods folder,
+  or both versions load. Your unlocks and servers carry over.
+
+UPDATING
+  Steam downloads updates automatically. With the game closed, copy the new
+  NextGenHardware.dll into the game's Mods folder again.
+
+UNINSTALLING
+  With the game closed, delete NextGenHardware.dll from the game's Mods folder,
+  then unsubscribe. Your saves still load without the mod.
+
+More help, and the source code (GPL-3.0):
+  https://github.com/checkersx/data-centre-next-gen-hardware

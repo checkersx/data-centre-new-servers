@@ -6,7 +6,7 @@ using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace NewServers
+namespace NextGenHardware
 {
     internal sealed class Variant
     {
@@ -73,8 +73,8 @@ namespace NewServers
 
             if (prefabs.Length != _vanillaCount)
             {
-                NewServersMod.Log.Error($"serverPrefabs has {prefabs.Length} entries, expected {_vanillaCount}. " +
-                                        "Another mod or a game update changed it; New Servers is not registering.");
+                NextGenHardwareMod.Log.Error($"serverPrefabs has {prefabs.Length} entries, expected {_vanillaCount}. " +
+                                        "Another mod or a game update changed it; Next-Gen Hardware is not registering.");
                 return false;
             }
 
@@ -82,7 +82,7 @@ namespace NewServers
             for (int i = 0; i < _vanillaCount; i++) extended[i] = prefabs[i];
             foreach (var v in Variants) extended[v.Index] = v.Prefab;
             mgm.serverPrefabs = extended;
-            NewServersMod.Log.Msg($"Registered {Variants.Count} server variants at indices {_vanillaCount}-{_vanillaCount + Variants.Count - 1} ({reason}).");
+            NextGenHardwareMod.Log.Msg($"Registered {Variants.Count} server variants at indices {_vanillaCount}-{_vanillaCount + Variants.Count - 1} ({reason}).");
             return true;
         }
 
@@ -93,7 +93,7 @@ namespace NewServers
         {
             // Templates live under an inactive holder so Awake/Start never run on them; the game's own
             // Instantiate calls produce active copies that initialise normally.
-            _holder = new GameObject("NewServers.Templates");
+            _holder = new GameObject("NextGenHardware.Templates");
             _holder.SetActive(false);
             Object.DontDestroyOnLoad(_holder);
 
@@ -130,9 +130,9 @@ namespace NewServers
                         ? Math.Max(PricePerIops(s), PricePerIops(small) * Balance.BigServerMinPricePremium)
                         : PricePerIops(s);
 
-                    // XP per IOPS comes from the family's biggest vanilla server: the smallest ones are starter
-                    // items (one unlocks at 0 XP), so their rate would make upgrades nearly free.
-                    double xpPerIops = big.shopItemSO.xpToUnlock / (big.maxProcessingSpeed * Balance.IopsUnit);
+                    // XP climbs from the family's biggest vanilla server: the smallest ones are starter items
+                    // (one unlocks at 0 XP), so anchoring there would make upgrades nearly free.
+                    double xp = big.shopItemSO.xpToUnlock * Math.Pow(Balance.XpStep, Balance.XpRung(gen, bigger));
 
                     var v = new Variant
                     {
@@ -144,13 +144,13 @@ namespace NewServers
                         Index = next++,
                         Iops = iops,
                         Price = Balance.RoundTo10(iops * pricePerIops * Balance.Premium(gen)),
-                        Xp = Balance.RoundTo10(iops * xpPerIops * Balance.Premium(gen)),
+                        Xp = Balance.RoundTo10(xp),
                         MaxProcessingSpeed = iops / Balance.IopsUnit,
                         TwinSO = s.shopItemSO,
                     };
 
                     v.SO = Object.Instantiate(s.shopItemSO);
-                    v.SO.name = $"ShopItemSO_NewServers_{v.Key}";
+                    v.SO.name = $"ShopItemSO_NextGenHardware_{v.Key}";
                     v.SO.itemID = v.Index;
                     v.SO.price = v.Price;
                     v.SO.xpToUnlock = v.Xp;
@@ -163,6 +163,7 @@ namespace NewServers
                     cs.prefabID = v.Index;
                     cs.shopItemSO = v.SO;
                     Ports.Configure(cs, gen);
+                    Lights.Add(v.Prefab, color, family, gen);
 
                     Variants.Add(v);
                     ByIndexMap[v.Index] = v;
@@ -179,9 +180,9 @@ namespace NewServers
 
         static void LogTable()
         {
-            NewServersMod.Log.Msg($"{"variant",-22} {"index",5} {"twin",4} {"IOPS",7} {"price",7} {"XP",7}");
+            NextGenHardwareMod.Log.Msg($"{"variant",-22} {"index",5} {"twin",4} {"IOPS",7} {"price",7} {"XP",7}");
             foreach (var v in Variants.OrderBy(x => x.TwinIndex).ThenBy(x => x.Gen))
-                NewServersMod.Log.Msg($"{v.Label,-22} {v.Index,5} {v.TwinIndex,4} {v.Iops,7} {v.Price,7} {v.Xp,7}");
+                NextGenHardwareMod.Log.Msg($"{v.Label,-22} {v.Index,5} {v.TwinIndex,4} {v.Iops,7} {v.Price,7} {v.Xp,7}");
         }
 
         // Postfix on Server.Start and Server.ServerInsertedInRack: keep our IOPS in case the game
@@ -196,11 +197,11 @@ namespace NewServers
                 if (!_resetLogged)
                 {
                     _resetLogged = true;
-                    NewServersMod.Log.Warning($"{v.Label}: game set maxProcessingSpeed to {__instance.maxProcessingSpeed}, restoring {v.MaxProcessingSpeed}.");
+                    NextGenHardwareMod.Log.Warning($"{v.Label}: game set maxProcessingSpeed to {__instance.maxProcessingSpeed}, restoring {v.MaxProcessingSpeed}.");
                 }
                 __instance.maxProcessingSpeed = v.MaxProcessingSpeed;
             }
-            catch (Exception e) { NewServersMod.Log.Error($"ServerPostfix: {e.Message}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"ServerPostfix: {e.Message}"); }
         }
     }
 }

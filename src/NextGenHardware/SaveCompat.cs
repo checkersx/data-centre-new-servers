@@ -6,7 +6,7 @@ using System.Text.Json;
 using Il2Cpp;
 using UnityEngine;
 
-namespace NewServers
+namespace NextGenHardware
 {
     // Keeps saves vanilla on disk. SaveGame builds its data from the live devices in one synchronous
     // call, so for the length of that call each upgraded server and new switch is switched back to its
@@ -15,7 +15,7 @@ namespace NewServers
     // save simply loads with vanilla devices in those slots.
     internal static class SaveCompat
     {
-        const string SidecarSuffix = ".newservers.json";
+        const string SidecarSuffix = ".newservers.json"; // the mod's old name; existing sidecars use it
 
         sealed class Sidecar
         {
@@ -47,7 +47,7 @@ namespace NewServers
                 _saveName = string.IsNullOrEmpty(__0) ? null : __0;
                 SwapToVanilla();
             }
-            catch (Exception e) { NewServersMod.Log.Error($"SaveGamePrefix: {e}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"SaveGamePrefix: {e}"); }
         }
 
         // WriteMeta runs inside SaveGame and is the only place a manual save's file name appears.
@@ -73,9 +73,9 @@ namespace NewServers
                 if (File.Exists(savePath))
                     DeleteOrphanSidecars();
                 else
-                    NewServersMod.Log.Warning($"Expected the save at {savePath} but it isn't there; sidecars may be in the wrong folder.");
+                    NextGenHardwareMod.Log.Warning($"Expected the save at {savePath} but it isn't there; sidecars may be in the wrong folder.");
             }
-            catch (Exception e) { NewServersMod.Log.Error($"SaveGamePostfix: {e}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"SaveGamePostfix: {e}"); }
             finally { _inSave = false; }
         }
 
@@ -149,7 +149,7 @@ namespace NewServers
         public static void RestoreIfStuck()
         {
             if (_inSave || (SwappedServers.Count == 0 && SwappedSwitches.Count == 0)) return;
-            NewServersMod.Log.Warning($"Save did not finish normally; restoring {SwappedServers.Count} servers and {SwappedSwitches.Count} switches.");
+            NextGenHardwareMod.Log.Warning($"Save did not finish normally; restoring {SwappedServers.Count} servers and {SwappedSwitches.Count} switches.");
             RestoreUpgrades();
         }
 
@@ -160,7 +160,7 @@ namespace NewServers
             try
             {
                 if (__result == null) return;
-                NewServersMod.Setup("save loading");
+                NextGenHardwareMod.Setup("save loading");
                 if (!Registry.Ready) return;
 
                 var sidecar = ReadSidecar(__0);
@@ -199,10 +199,10 @@ namespace NewServers
                     }
                 }
 
-                NewServersMod.Log.Msg($"Loaded '{__0}': restored {servers} upgraded servers and {switches} switches" +
+                NextGenHardwareMod.Log.Msg($"Loaded '{__0}': restored {servers} upgraded servers and {switches} switches" +
                                       (stale > 0 ? $", skipped {stale} that no longer match" : "") + ".");
             }
-            catch (Exception e) { NewServersMod.Log.Error($"LoadGamePostfix: {e}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"LoadGamePostfix: {e}"); }
         }
 
         // Find a sidecar entry by device ID, falling back to position for devices saved without one.
@@ -243,7 +243,7 @@ namespace NewServers
             if (string.IsNullOrEmpty(saveName))
             {
                 if (count > 0)
-                    NewServersMod.Log.Error($"Could not tell which save file was written; {count} upgrades not recorded.");
+                    NextGenHardwareMod.Log.Error($"Could not tell which save file was written; {count} upgrades not recorded.");
                 return;
             }
             var path = SidecarPath(saveName);
@@ -253,7 +253,7 @@ namespace NewServers
                 return;
             }
             File.WriteAllText(path, JsonSerializer.Serialize(sidecar, new JsonSerializerOptions { WriteIndented = true }));
-            NewServersMod.Log.Msg($"Saved '{BaseName(saveName)}' as vanilla; {sidecar.Servers.Count} servers and {sidecar.Switches.Count} switches recorded in {path}.");
+            NextGenHardwareMod.Log.Msg($"Saved '{BaseName(saveName)}' as vanilla; {sidecar.Servers.Count} servers and {sidecar.Switches.Count} switches recorded in {path}.");
         }
 
         static Sidecar ReadSidecar(string saveName)
@@ -287,7 +287,7 @@ namespace NewServers
                 if (File.Exists(to)) File.Delete(to);
                 File.Move(from, to);
             }
-            catch (Exception e) { NewServersMod.Log.Error($"MoveSaveFilesPostfix('{__0}', '{__1}'): {e.Message}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"MoveSaveFilesPostfix('{__0}', '{__1}'): {e.Message}"); }
         }
 
         public static void DeleteSaveFilePostfix(string __0)
@@ -297,7 +297,7 @@ namespace NewServers
                 var path = SidecarPath(__0);
                 if (BaseName(__0) != null && File.Exists(path)) File.Delete(path);
             }
-            catch (Exception e) { NewServersMod.Log.Error($"DeleteSaveFilePostfix('{__0}'): {e.Message}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"DeleteSaveFilePostfix('{__0}'): {e.Message}"); }
         }
     }
 }

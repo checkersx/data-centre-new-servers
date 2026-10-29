@@ -1,0 +1,73 @@
+Adds [b]Gen 2, Gen 3 and Gen 4[/b] versions of every server to the shop, plus a new switch with both copper and fibre ports.
+
+Late in the game, a big customer means filling rack after rack with the same 3U servers and cabling every one. Next-Gen servers do that job in less space with fewer cables. They cost more money and XP, so the normal servers are still worth buying early on.
+
+[h2]⚠ This is a code mod: one manual step is needed[/h2]
+The Workshop downloads the mod, but Data Center does [b]not[/b] install code mods by itself. After subscribing, follow [b]Install[/b] below. It takes about a minute.
+
+[h2]What it adds[/h2]
+[table]
+[tr][th][/th][th]3U server[/th][th]7U server[/th][th]Ports[/th][th]Front lights[/th][/tr]
+[tr][td]Normal[/td][td]5,000 IOPS[/td][td]12,000 IOPS[/td][td]2 copper, 1 Gbps[/td][td]none[/td][/tr]
+[tr][td][b]Gen 2[/b][/td][td]9,000 IOPS[/td][td]25,000 IOPS[/td][td]2 copper, 10 Gbps[/td][td]bottom bar[/td][/tr]
+[tr][td][b]Gen 3[/b][/td][td]15,000 IOPS[/td][td]42,000 IOPS[/td][td]2 SFP slots[/td][td]top and bottom bars[/td][/tr]
+[tr][td][b]Gen 4[/b][/td][td]24,000 IOPS[/td][td]67,000 IOPS[/td][td]2 SFP slots[/td][td]full frame with a moving light[/td][/tr]
+[/table]
+
+[list]
+[*][b]24 new servers:[/b] Gen 2, 3 and 4 of System X, RISC, GPU and Mainframe, in 3U and 7U.
+[*][b]Faster ports.[/b] Normal server ports run at 1 Gbps, which limits any server to 20,000 IOPS. Gen 2 runs at 10 Gbps, and Gen 3 and 4 have SFP slots.
+[*][b]Unlocks go in order.[/b] Gen 2 needs the normal server, Gen 3 needs Gen 2, and Gen 4 needs Gen 3. The XP cost climbs steadily from the normal 3U up to the Gen 4 7U.
+[*][b]New switch:[/b] the starter switch's 16 copper ports plus 4 SFP slots. $810 and 500 XP, after the "4 x SFP" switch.
+[*][b]Bug fix:[/b] stops other mods (such as AutoLACP) from breaking the message ticker, which makes new servers stop connecting until you restart.
+[/list]
+
+[h2]Before you install (once, for any code mod)[/h2]
+If you already use other code mods, you most likely have these. Otherwise:
+[olist]
+[*][b]MelonLoader 0.7.3[/b] from [url=https://github.com/LavaGang/MelonLoader/releases]the MelonLoader releases page[/url]. Run the installer, point it at Data Center.exe, choose 0.7.3, install. Start the game once, then quit.
+[*][b]A fix-up plugin[/b], or no code mods load at all: [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3797166996]DS-InteropFix[/url] or [url=https://github.com/mleem97/Il2CppAssemblyFixer]Il2CppAssemblyFixer[/url]. Follow its own instructions.
+[/olist]
+
+[h2]Install[/h2]
+[olist]
+[*]Subscribe to this mod.
+[*]Start Data Center, wait for the main menu, then quit. (The game copies the download into its folder.)
+[*]Open your game folder: in your Steam Library, right-click [b]Data Center[/b] → [b]Manage[/b] → [b]Browse local files[/b].
+[*]Open [b]Data Center_Data[/b] → [b]StreamingAssets[/b] → [b]Mods[/b].
+[*]Find this mod's folder, called [i]workshop_[/i] followed by a long number. The easy way: type [b]NextGenHardware[/b] into File Explorer's search box (top right).
+[*]Inside it, open [b]Mods[/b] and copy [b]NextGenHardware.dll[/b].
+[*]Go back to the game folder from step 3 (the one with Data Center.exe), open its [b]Mods[/b] folder, and paste.
+[*]Start the game. The MelonLoader console shows [b]Next-Gen Hardware v1.0.0[/b], and the shop has "Gen 2", "Gen 3" and "Gen 4" servers.
+[/olist]
+[b]Shortcut:[/b] a Workshop sync helper (WorkshopModSync, gregPlugin.SteamModfix) does steps 3–7 for you.
+[b]Had "New Servers"?[/b] That's this mod's old name. Delete [b]NewServers.dll[/b] from your Mods folder. Your unlocks and servers carry over.
+
+[h2]Using Gen 3 and Gen 4 servers[/h2]
+Their SFP slots need a module before a cable connects, just like the fibre switches. Buy a box of SFP modules, hold it, click a slot to insert a module, then plug in a cable. Any module type is fast enough. [b]SFP RJ45[/b] takes an ordinary copper cable.
+
+[h2]Saves[/h2]
+[list]
+[*]Saves stay vanilla. Upgraded hardware is saved as its normal version, and a small [i].newservers.json[/i] file next to the save remembers the upgrades.
+[*]Remove the mod and your saves still load: upgrades become normal servers, the new switch becomes a starter switch, and cables in SFP slots are lost (re-cable those servers).
+[*]Rack templates don't support upgraded hardware yet.
+[/list]
+
+[h2]Co-op[/h2]
+[b]Never tested.[/b] It should work in theory, as long as every player has the mod at the same version.
+
+[h2]Updating and uninstalling[/h2]
+[list]
+[*][b]Update:[/b] Steam downloads updates automatically. With the game closed, copy the new NextGenHardware.dll across again (Install steps 2–7).
+[*][b]Uninstall:[/b] with the game closed, delete NextGenHardware.dll from the game's Mods folder, then unsubscribe.
+[/list]
+
+[h2]Problems?[/h2]
+[list]
+[*][b]No mods load at all after a game update:[/b] quit and start the game a second time.
+[*][b]Still nothing:[/b] check you have the fix-up plugin, and that the DLL is in the Mods folder next to Data Center.exe (not the one inside StreamingAssets).
+[*]Report issues on [url=https://github.com/checkersx/data-centre-next-gen-hardware/issues]GitHub[/url], with the file Data Center\MelonLoader\Latest.log.
+[/list]
+
+Source code (GPL-3.0): [url=https://github.com/checkersx/data-centre-next-gen-hardware]github.com/checkersx/data-centre-next-gen-hardware[/url]
+Tested on Data Center Steam build 25869593 with MelonLoader 0.7.3. Not affiliated with Waseku.

@@ -6,7 +6,7 @@ using MelonLoader;
 using MelonLoader.Utils;
 using UnityEngine;
 
-[assembly: MelonInfo(typeof(NewServers.Probe.ProbeMod), "NewServers.Probe", "0.4.0", "checkersx")]
+[assembly: MelonInfo(typeof(NewServers.Probe.ProbeMod), "NewServers.Probe", "0.5.0", "checkersx")]
 [assembly: MelonGame("Waseku", "Data Center")]
 
 namespace NewServers.Probe

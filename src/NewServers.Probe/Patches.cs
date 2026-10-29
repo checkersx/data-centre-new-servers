@@ -36,6 +36,7 @@ namespace NewServers.Probe
             Patch(h, typeof(ShopItem), nameof(ShopItem.TryUnlock), nameof(TryUnlockPre), nameof(TryUnlockPost));
             Patch(h, typeof(ShopItem), nameof(ShopItem.UnlockButton), nameof(UnlockButtonPre), null);
             Patch(h, typeof(TechnicianManager), nameof(TechnicianManager.SendTechnician), nameof(SendTechPre), null);
+            Patch(h, typeof(CableLink), nameof(CableLink.InteractOnHover), null, nameof(PortHoverPost));
 
             // Is the save's SaveData visible at serialisation time? (A fallback place to edit save data.)
             Patch(h, typeof(Il2CppSystem.Runtime.Serialization.Formatters.Binary.BinaryFormatter), "Serialize", nameof(FormatterSerializePre), null,
@@ -61,6 +62,19 @@ namespace NewServers.Probe
             try { body(); }
             catch (Exception e) { Log($"!!! {name}: {e}"); }
         }
+
+        // ---- port hover outline (once per server port) ----
+
+        static readonly System.Collections.Generic.HashSet<int> HoveredPorts = new();
+
+        static void PortHoverPost(CableLink __instance) => Guard("PortHoverPost", () =>
+        {
+            var server = __instance.parentServer;
+            if (server == null || !HoveredPorts.Add(__instance.GetInstanceID())) return;
+            Log($">> hover port '{__instance.name}' on '{server.name}' prefabID={server.prefabID} sfpPort={__instance.isSFPPort} " +
+                $"inserted={__instance.sfpTypeInserted} lrot={__instance.transform.localEulerAngles}", console: true);
+            Dumps.Outline(__instance, server.transform);
+        });
 
         // ---- save / load pipeline ----
 

@@ -81,6 +81,31 @@ namespace NewServers.Probe
                     : $"{l.typeOfLink}/{l.connectionSpeed}G/sfpPort={l.isSFPPort}:supported={l.sfpTypeSupported}:inserted={l.sfpTypeInserted}/fibre={l.isFibrePort}");
             }
             Log($"     ports({links.Length}): {string.Join(" | ", parts)}");
+            for (int k = 0; k < links.Length; k++)
+                if (links[k] != null) Outline(links[k], s.transform);
+        }
+
+        // What a port's hover outline draws: each target renderer, where it sits relative to the port, and
+        // which submesh. (Probe 0.5: the outline on Gen 3/4 3U cages shows above the cage.)
+        internal static void Outline(CableLink l, Transform root)
+        {
+            var o = l.outlineEffect;
+            if (o == null) { Log($"       outline {PathOf(l.transform, root)}: none"); return; }
+            var targets = o.outlineTargets;
+            int n = targets == null ? 0 : targets.Count;
+            Log($"       outline {PathOf(l.transform, root)}: on {PathOf(o.transform, root)} enabled={o.enabled} targets={n} " +
+                $"portPos(root)={V(root.InverseTransformPoint(l.transform.position))}");
+            for (int i = 0; i < n; i++)
+            {
+                var t = targets[i];
+                var r = t?.renderer;
+                if (r == null) { Log("         target null renderer"); continue; }
+                var mf = r.GetComponent<MeshFilter>();
+                var mesh = mf == null ? null : mf.sharedMesh;
+                Log($"         target {PathOf(r.transform, root)} [{r.GetIl2CppType().Name}] mesh={(mesh == null ? "-" : mesh.name)} submesh={t.SubmeshIndex} boundsMode={t.BoundsMode} " +
+                    $"bounds c={V(t.Bounds.center)} s={V(t.Bounds.size)} rendererPos(root)={V(root.InverseTransformPoint(r.transform.position))} " +
+                    $"rendererBounds c(root)={V(root.InverseTransformPoint(r.bounds.center))} s={V(r.bounds.size)}");
+            }
         }
 
         static void Visuals(GameObject go)

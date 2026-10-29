@@ -2,7 +2,7 @@ using System;
 using Il2Cpp;
 using UnityEngine;
 
-namespace NewServers
+namespace NextGenHardware
 {
     // The game's message ticker keeps two parallel lists: messageQueue and messageExpireTimes.
     // Some mods (AutoLACP 1.0.0) enqueue messages directly without adding an expiry time, so the
@@ -29,10 +29,10 @@ namespace NewServers
 
                 if (_logged) return;
                 _logged = true;
-                NewServersMod.Log.Warning($"Game message list was out of sync ({queue.Count} messages, {before} timers), " +
+                NextGenHardwareMod.Log.Warning($"Game message list was out of sync ({queue.Count} messages, {before} timers), " +
                                           "probably from another mod adding messages directly. Repaired so route evaluation keeps running.");
             }
-            catch (Exception e) { NewServersMod.Log.Error($"MessageQueueGuard: {e.Message}"); }
+            catch (Exception e) { NextGenHardwareMod.Log.Error($"MessageQueueGuard: {e.Message}"); }
         }
     }
 }

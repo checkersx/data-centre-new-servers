@@ -1,6 +1,6 @@
 using System;
 
-namespace NewServers
+namespace NextGenHardware
 {
     internal static class Balance
     {
@@ -26,8 +26,15 @@ namespace NewServers
         public static int Iops(int gen, int sizeInU, bool bigger) =>
             (int)(Math.Round(IopsPerU(gen) * sizeInU * (bigger ? BigServerDensity : 1.0) / 1000.0) * 1000);
 
-        // Each Gen costs 1.1x the previous Gen per IOPS, in money and in XP, compounding from vanilla.
+        // Each Gen costs 1.1x the previous Gen per IOPS in money, compounding from vanilla.
         public static double Premium(int gen) => Math.Pow(1.1, gen - 1);
+
+        // XP to unlock climbs a ladder through each family: vanilla 3U, vanilla 7U, Gen 2 3U, Gen 2 7U, Gen 3 3U ...
+        // Each rung costs XpStep times the rung below, starting from the family's vanilla 7U (rung 0). At 1.4,
+        // Gen 4 7U costs about what it did under the older IOPS-based XP.
+        public const double XpStep = 1.4;
+
+        public static int XpRung(int gen, bool bigger) => 2 * (gen - 1) - (bigger ? 0 : 1);
 
         // The game stores IOPS divided by 100,000 (a 5,000 IOPS server has maxProcessingSpeed 0.05).
         public const float IopsUnit = 100000f;

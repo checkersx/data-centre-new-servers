@@ -1,14 +1,15 @@
 using System;
 using MelonLoader;
 
-[assembly: MelonInfo(typeof(NewServers.NewServersMod), "New Servers", "0.4.1", "checkersx")]
+[assembly: MelonInfo(typeof(NextGenHardware.NextGenHardwareMod), "Next-Gen Hardware", "1.0.0", "checkersx")]
 [assembly: MelonGame("Waseku", "Data Center")]
 
-namespace NewServers
+namespace NextGenHardware
 {
-    // Adds Gen 2/3/4 versions of every vanilla server (same model, more IOPS, faster ports) and a
-    // starter switch with 4 extra SFP ports. Saves stay vanilla on disk (see SaveCompat).
-    public class NewServersMod : MelonMod
+    // Adds Gen 2/3/4 versions of every vanilla server (same model, more IOPS, faster ports, front light
+    // bars) and a starter switch with 4 extra SFP ports. Saves stay vanilla on disk (see SaveCompat).
+    // The mod was called "New Servers" until v0.5; save-facing IDs keep that name.
+    public class NextGenHardwareMod : MelonMod
     {
         internal static MelonLogger.Instance Log;
 
@@ -23,7 +24,11 @@ namespace NewServers
 
         public override void OnSceneWasInitialized(int buildIndex, string sceneName) => Setup($"scene '{sceneName}' initialized");
 
-        public override void OnUpdate() => SaveCompat.RestoreIfStuck();
+        public override void OnUpdate()
+        {
+            SaveCompat.RestoreIfStuck();
+            Lights.Animate();
+        }
 
         internal static void Setup(string reason)
         {
