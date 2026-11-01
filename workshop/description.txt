@@ -3,7 +3,7 @@ Adds [b]Gen 2, Gen 3 and Gen 4[/b] versions of every server to the shop, plus a 
 Late in the game, a big customer means filling rack after rack with the same 3U servers and cabling every one. Next-Gen servers do that job in less space with fewer cables. They cost more money and XP, so the normal servers are still worth buying early on.
 
 [h2]⚠ This is a code mod: pick an install method below[/h2]
-Data Center doesn't install code mods by itself. With [b]WorkshopModSync[/b] (a free helper by Bloody) it's subscribe and play. Without it, there's one file to copy. Both are explained under [b]How to install[/b].
+Data Center doesn't install code mods by itself. With [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292]WorkshopModSync[/url] (a free helper by Bloody) it's subscribe and play. Without it, there's one file to copy. Both are explained under [b]How to install[/b].
 
 [h2]What it adds[/h2]
 [table]
@@ -40,13 +40,11 @@ Check: if the [b]Plugins[/b] folder in your game folder contains [b]WorkshopModS
 [/olist]
 
 [h3]Way 2: set up WorkshopModSync once, then subscribe and play[/h3]
-[b]WorkshopModSync[/b] is a free helper made by [b]Bloody[/b]. It comes with Bloody's [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3773467133]DHCP Mod[/url]. Set it up once, and this mod and other Workshop code mods install and update themselves.
+[url=https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292]WorkshopModSync[/url] is a free helper made by [b]Bloody[/b]. Set it up once, and this mod and other Workshop code mods install and update themselves. It can't install itself, so:
 [olist]
-[*]Subscribe to [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3773467133]DHCP Mod[/url] and to this mod.
-[*]Start the game, wait for the main menu, then quit.
-[*]In your game folder, open [b]Data Center_Data[/b] → [b]StreamingAssets[/b] → [b]Mods[/b] → [b]workshop_3773467133[/b] → [b]Plugins[/b], and copy [b]WorkshopModSync.dll[/b].
-[*]Go back to your game folder, open its [b]Plugins[/b] folder, and paste.
-[*]Start the game. WorkshopModSync installs this mod (and DHCP Mod, since you're subscribed to it too) and keeps them updated.
+[*]Close the game, then subscribe to [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292]WorkshopModSync[/url] and to this mod.
+[*]Set up WorkshopModSync by following [b]Set it up once[/b] on [url=https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292]its page[/url]. It comes with a one-click installer ([b]WorkshopModSyncInstaller.exe[/b]) that finds Data Center and puts it in the right place.
+[*]Start the game. Done. This mod installs itself and stays up to date.
 [/olist]
 
 [h3]Way 3: copy one file by hand (no helper)[/h3]

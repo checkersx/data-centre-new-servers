@@ -5,6 +5,11 @@ USING WORKSHOPMODSYNC? Then you don't need these steps: it installs the mod
 for you each time the game starts. (You have it if your game folder's Plugins
 folder contains WorkshopModSync.dll.)
 
+WANT IT? WorkshopModSync is a free helper by Bloody on the Steam Workshop:
+  https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292
+Set it up once (its page has a one-click installer), and Workshop code mods
+like this one install themselves from then on.
+
 Otherwise: this is a code mod. The Steam Workshop downloads it, but Data Center
 does not install code mods by itself, so you copy ONE file by hand.
 

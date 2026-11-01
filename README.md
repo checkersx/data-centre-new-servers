@@ -84,7 +84,13 @@ If you have the **WorkshopModSync** helper, Workshop mods install themselves:
 
 That's it. Every time the game starts, WorkshopModSync copies your subscribed Workshop mods into the right folders, updates included.
 
-**Do I have it?** Open your game folder (in your Steam Library, right-click **Data Center** → **Manage** → **Browse local files**) and look in its **`Plugins`** folder. If `WorkshopModSync.dll` is there, you have it. WorkshopModSync is made by Bloody, the author of DHCP Mod, and comes with DHCP Mod on the Workshop.
+**Do I have it?** Open your game folder (in your Steam Library, right-click **Data Center** → **Manage** → **Browse local files**) and look in its **`Plugins`** folder. If `WorkshopModSync.dll` is there, you have it.
+
+**Don't have it yet?** [WorkshopModSync](https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292) is a free helper made by Bloody, on the Steam Workshop. It can't install itself, so set it up once:
+1. Close the game and subscribe to [WorkshopModSync](https://steamcommunity.com/sharedfiles/filedetails/?id=3830456292).
+2. Follow **Set it up once** on its page. It comes with a one-click installer (`WorkshopModSyncInstaller.exe`) that finds Data Center and puts the helper in the right place.
+
+From then on, every Workshop code mod you subscribe to (this one included) installs itself when you start the game.
 
 ### Steam Workshop without WorkshopModSync: copy one file
 
